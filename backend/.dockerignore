@@ -1,0 +1,11 @@
+node_modules
+dist
+generated
+coverage
+.git
+.vscode
+.idea
+.env
+.env.*
+!.env.example
+npm-debug.log*

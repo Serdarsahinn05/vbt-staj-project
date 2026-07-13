@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  role      String?
+  createdAt DateTime @default(now())
+
+  cart   Cart?
+  orders Order[]
+}
+
+model Category {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  products Product[]
+}
+
+model Product {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String
+  price       Decimal
+  stock       Int
+
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId Int
+
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+}
+
+model Cart {
+  id Int @id @default(autoincrement())
+
+  user   User @relation(fields: [userId], references: [id])
+  userId Int  @unique
+
+  cartItems CartItem[]
+}
+
+model CartItem {
+  id Int @id @default(autoincrement())
+
+  cart   Cart @relation(fields: [cartId], references: [id])
+  cartId Int
+
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+
+  quantity Int
+
+  @@unique([cartId, productId])
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  CANCELLED
+}
+
+model Order {
+  id Int @id @default(autoincrement())
+
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+
+  status    OrderStatus @default(PENDING)
+  total     Decimal
+  createdAt DateTime    @default(now())
+
+  orderItems OrderItem[]
+}
+
+model OrderItem {
+  id Int @id @default(autoincrement())
+
+  order   Order @relation(fields: [orderId], references: [id])
+  orderId Int
+
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+
+  quantity        Int
+  priceAtPurchase Decimal
+}
+
+
+
