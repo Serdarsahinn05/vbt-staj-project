@@ -18,6 +18,7 @@ Bu komut tek başına:
 - PostgreSQL veritabanını ayağa kaldırır
 - Mevcut migration'ları otomatik uygular (`prisma migrate deploy`)
 - Prisma Client'ı üretir
+- Seed verisini otomatik yükler (örnek kategoriler) — tekrar tekrar çalışsa da veri silmez/kopyalamaz
 - API'yi hot-reload modunda başlatır (`nest start --watch`)
 
 İlk kurulumdan sonra tekrar çalıştırmak için `--build` gerekmez, sadece:
@@ -62,13 +63,34 @@ src/
 ├── auth/         # kimlik doğrulama (JWT) — geliştiriliyor
 ├── users/        # kullanıcı profilleri — geliştiriliyor
 ├── products/     # ürün listeleme/arama/detay — geliştiriliyor
-├── categories/   # ürün kategorileri — geliştiriliyor
+├── categories/   # ürün kategorileri — ✅ hazır (CRUD)
 ├── cart/         # sepet işlemleri — geliştiriliyor
 └── orders/       # sipariş oluşturma/geçmiş — geliştiriliyor
 ```
 
 Veri modelleri için bkz. [prisma/schema.prisma](./prisma/schema.prisma).
 
+## Hazır endpoint'ler
+
+### Categories (`/categories`)
+
+| Metot | Yol | Açıklama |
+|-------|-----|----------|
+| GET | `/categories` | Tüm kategorileri listeler |
+| GET | `/categories/:id` | Tek kategori getirir (yoksa `404`) |
+| POST | `/categories` | Yeni kategori oluşturur (aynı isim varsa `409`) |
+| PATCH | `/categories/:id` | Kategori günceller (yoksa `404`) |
+| DELETE | `/categories/:id` | Kategori siler (yoksa `404`) |
+
+Tüm endpoint'ler Swagger üzerinden test edilebilir: [http://localhost:3000/api](http://localhost:3000/api)
+
 ## Durum
 
-Şu an Docker altyapısı, Prisma veri modeli ve Swagger dokümantasyonu hazır. Auth ve kaynak (resource) modüllerinin içi henüz doldurulmadı.
+Tamamlananlar:
+- Docker altyapısı (tek komutla ayağa kalkma, hot-reload, otomatik migration + seed)
+- Prisma veri modeli (User, Category, Product, Cart, CartItem, Order, OrderItem)
+- Swagger / OpenAPI dokümantasyonu
+- Global validasyon (class-validator) + tutarlı hata yönetimi (`404` / `409`)
+- **Categories** modülü — tam CRUD
+
+Sıradaki işler: Products, Auth (JWT), Users, Cart, Orders modülleri ve RFC 9457 standart hata formatı.
