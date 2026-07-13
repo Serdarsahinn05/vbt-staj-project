@@ -34,7 +34,7 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
-    command: sh -c "npx prisma migrate deploy && npx prisma generate && npm run start:dev"
+    command: sh -c "npx prisma migrate deploy && npx prisma generate && npx tsx prisma/seed.ts && npm run start:dev"
 
 volumes:
   postgres_data:
