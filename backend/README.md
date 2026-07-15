@@ -18,7 +18,7 @@ Bu komut tek başına:
 - PostgreSQL veritabanını ayağa kaldırır
 - Mevcut migration'ları otomatik uygular (`prisma migrate deploy`)
 - Prisma Client'ı üretir
-- Seed verisini otomatik yükler (örnek kategoriler) — tekrar tekrar çalışsa da veri silmez/kopyalamaz
+- Seed verisini otomatik yükler (örnek kategoriler ve görselli ürünler) — tekrar tekrar çalışsa da veri silmez/kopyalamaz
 - API'yi hot-reload modunda başlatır (`nest start --watch`)
 
 İlk kurulumdan sonra tekrar çalıştırmak için `--build` gerekmez, sadece:
@@ -62,7 +62,7 @@ docker compose down -v
 src/
 ├── auth/         # kimlik doğrulama (JWT) — geliştiriliyor
 ├── users/        # kullanıcı profilleri — geliştiriliyor
-├── products/     # ürün listeleme/arama/detay — geliştiriliyor
+├── products/     # ürün listeleme/arama/filtreleme/detay — ✅ hazır (CRUD + görseller)
 ├── categories/   # ürün kategorileri — ✅ hazır (CRUD)
 ├── cart/         # sepet işlemleri — geliştiriliyor
 └── orders/       # sipariş oluşturma/geçmiş — geliştiriliyor
@@ -82,6 +82,28 @@ Veri modelleri için bkz. [prisma/schema.prisma](./prisma/schema.prisma).
 | PATCH | `/categories/:id` | Kategori günceller (yoksa `404`) |
 | DELETE | `/categories/:id` | Kategori siler (yoksa `404`) |
 
+### Products (`/products`)
+
+| Metot | Yol | Açıklama |
+|-------|-----|----------|
+| GET | `/products` | Ürünleri listeler (arama, filtreleme, sayfalama — aşağıya bakın) |
+| GET | `/products/:id` | Tek ürün getirir, kategorisiyle birlikte (yoksa `404`) |
+| POST | `/products` | Yeni ürün oluşturur (geçersiz kategori → `400`) |
+| PATCH | `/products/:id` | Ürün günceller (yoksa `404`) |
+| DELETE | `/products/:id` | Ürün siler (yoksa `404`) |
+
+**`GET /products` query parametreleri** (hepsi opsiyonel, birlikte kullanılabilir):
+
+| Parametre | Örnek | Ne yapar |
+|-----------|-------|----------|
+| `search` | `?search=rolex` | İsim ve açıklamada arar (kısmi, harf duyarsız) |
+| `categoryId` | `?categoryId=1` | Kategoriye göre filtreler |
+| `minPrice` / `maxPrice` | `?minPrice=1000&maxPrice=5000` | Fiyat aralığı |
+| `sortBy` | `?sortBy=price` | Sıralama alanı (`price` / `name`) |
+| `page` / `limit` | `?page=2&limit=10` | Sayfalama (varsayılan `page=1`, `limit=10`) |
+
+Yanıt formatı: `{ "data": [...], "meta": { total, page, limit, totalPages } }`
+
 Tüm endpoint'ler Swagger üzerinden test edilebilir: [http://localhost:3000/api](http://localhost:3000/api)
 
 ## Durum
@@ -90,7 +112,9 @@ Tamamlananlar:
 - Docker altyapısı (tek komutla ayağa kalkma, hot-reload, otomatik migration + seed)
 - Prisma veri modeli (User, Category, Product, Cart, CartItem, Order, OrderItem)
 - Swagger / OpenAPI dokümantasyonu
-- Global validasyon (class-validator) + tutarlı hata yönetimi (`404` / `409`)
+- Global validasyon (class-validator) + tutarlı hata yönetimi (`400` / `404` / `409`)
 - **Categories** modülü — tam CRUD
+- **Products** modülü — tam CRUD + görseller + arama/filtreleme/sayfalama
+- Seed: örnek kategoriler ve görselli ürünler (idempotent)
 
-Sıradaki işler: Products, Auth (JWT), Users, Cart, Orders modülleri ve RFC 9457 standart hata formatı.
+Sıradaki işler: Auth (JWT), Users, Cart, Orders modülleri ve RFC 9457 standart hata formatı.

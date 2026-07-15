@@ -39,6 +39,7 @@ model Product {
   description String
   price       Decimal
   stock       Int
+  images      String[]
 
   category   Category @relation(fields: [categoryId], references: [id])
   categoryId Int

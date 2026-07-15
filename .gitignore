@@ -1,5 +1,6 @@
-# Claude Code local settings
-.claude/
+# Claude Code — kişisel ayarları gizle ama paylaşılan skill'leri dahil et
+.claude/*
+!.claude/skills/
 
 # OS
 .DS_Store
