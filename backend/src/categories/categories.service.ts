@@ -43,8 +43,8 @@ export class CategoriesService {
       throw new NotFoundException('Kategori bulunamadı');
     }
     throw e;
+    }
   }
-}
 
 
   async findOne(id: number) {
