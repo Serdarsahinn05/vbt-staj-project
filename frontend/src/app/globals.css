@@ -1,0 +1,131 @@
+@import "tailwindcss";
+
+/* Zemrek design tokens — docs/design-system/tokens'tan birebir kopya.
+   Kaynak değişirse: cp ../docs/design-system/tokens/*.css src/styles/tokens/ */
+@import "../styles/tokens/colors.css";
+@import "../styles/tokens/typography.css";
+@import "../styles/tokens/spacing.css";
+
+/* Fontlar next/font ile self-host ediliyor (layout.tsx);
+   token dosyasındaki "Montserrat"/"Poppins" referanslarını bunlara bağla. */
+:root {
+  --font-heading: var(--font-montserrat), sans-serif;
+  --font-body: var(--font-poppins), sans-serif;
+}
+
+/* Token → Tailwind utility eşlemesi (bg-primary, text-accent, font-heading,
+   text-h2, rounded-lg, shadow-soft...). Değerler tokens.json v1.0.0 ile aynı. */
+@theme inline {
+  --color-*: initial;
+
+  /* Paletler */
+  --color-emerald-100: var(--emerald-100);
+  --color-emerald-300: var(--emerald-300);
+  --color-emerald-500: var(--emerald-500);
+  --color-emerald-700: var(--emerald-700);
+  --color-pine-100: var(--pine-100);
+  --color-pine-300: var(--pine-300);
+  --color-pine-500: var(--pine-500);
+  --color-pine-700: var(--pine-700);
+  --color-gold-100: var(--gold-100);
+  --color-gold-300: var(--gold-300);
+  --color-gold-500: var(--gold-500);
+  --color-gold-700: var(--gold-700);
+  --color-graphite-100: var(--graphite-100);
+  --color-graphite-300: var(--graphite-300);
+  --color-graphite-500: var(--graphite-500);
+  --color-graphite-700: var(--graphite-700);
+  --color-steel-50: var(--steel-50);
+  --color-steel-100: var(--steel-100);
+  --color-steel-300: var(--steel-300);
+  --color-steel-500: var(--steel-500);
+  --color-white: var(--white);
+
+  /* Semantik */
+  --color-primary: var(--emerald-500);
+  --color-primary-hover: var(--emerald-700);
+  --color-primary-soft: var(--emerald-100);
+  --color-secondary: var(--pine-500);
+  --color-accent: var(--gold-500);
+  --color-accent-hover: var(--gold-700);
+  --color-accent-soft: var(--gold-100);
+  --color-accent-muted: #e8dcc3;
+  --color-page: var(--steel-50);
+  --color-surface: var(--white);
+  --color-sunken: var(--steel-100);
+  --color-dark: var(--graphite-700);
+  --color-dark-elevated: var(--graphite-500);
+  --color-border-subtle: var(--steel-300);
+  --color-border-strong: var(--graphite-100);
+  --color-heading: var(--graphite-700);
+  --color-body: #3a3a3a;
+  --color-muted: var(--steel-500);
+  --color-on-dark: var(--steel-50);
+  --color-on-dark-muted: #b7bec9;
+  --color-inverse: var(--white);
+  --color-text-accent: var(--gold-700);
+  --color-focus-ring: var(--gold-500);
+  --color-star-gold: var(--gold-500);
+
+  /* Tipografi */
+  --font-heading: var(--font-montserrat), sans-serif;
+  --font-body: var(--font-poppins), sans-serif;
+  --text-display: 56px;
+  --text-display--line-height: 1.15;
+  --text-display--letter-spacing: 0.02em;
+  --text-h1: 40px;
+  --text-h1--line-height: 1.25;
+  --text-h2: 30px;
+  --text-h2--line-height: 1.25;
+  --text-h3: 22px;
+  --text-h3--line-height: 1.25;
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 1.6;
+  --text-body: 15px;
+  --text-body--line-height: 1.6;
+  --text-small: 13px;
+  --text-small--line-height: 1.6;
+  --text-micro: 11px;
+  --text-micro--line-height: 1.6;
+  --tracking-eyebrow: 0.18em;
+
+  /* Radius & gölge & motion */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+  --shadow-soft: 0 2px 8px hsl(220 20% 8% / 0.06), 0 8px 24px hsl(220 20% 8% / 0.08);
+  --shadow-elevated: 0 4px 16px hsl(220 20% 8% / 0.1), 0 16px 40px hsl(220 20% 8% / 0.14);
+  --shadow-gold-glow: 0 4px 20px hsl(38 55% 60% / 0.25);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+  background: var(--bg-page);
+  color: var(--text-body);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-heading);
+  color: var(--text-heading);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

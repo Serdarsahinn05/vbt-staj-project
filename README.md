@@ -5,7 +5,7 @@ Bu repo, [VB10 Staj 2026 E-Ticaret ödevi](https://github.com/VB10/staj-2026-int
 ## Klasör Yapısı
 
 - `backend/` — NestJS + Prisma API (JWT auth, ürün/sepet/sipariş/kullanıcı kaynakları). Kurulum ve çalıştırma talimatları için [backend/README.md](./backend/README.md).
-- `frontend/` — Web arayüzü (henüz eklenmedi).
+- `frontend/` — Next.js + Tailwind web arayüzü. Kurulum ve çalıştırma talimatları için [frontend/README.md](./frontend/README.md).
 - `mobile/` — Mobil uygulama (henüz eklenmedi).
 
 ## Katkı Kuralları
