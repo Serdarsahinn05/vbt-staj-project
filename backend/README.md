@@ -64,7 +64,7 @@ src/
 ├── users/        # kullanıcı profilleri — geliştiriliyor
 ├── products/     # ürün listeleme/arama/filtreleme/detay — ✅ hazır (CRUD + görseller)
 ├── categories/   # ürün kategorileri — ✅ hazır (CRUD)
-├── cart/         # sepet işlemleri — geliştiriliyor
+├── cart/         # sepet işlemleri — ✅ hazır (ürün ekle/güncelle/çıkar, stok kontrolü)
 └── orders/       # sipariş oluşturma/geçmiş — geliştiriliyor
 ```
 
@@ -104,6 +104,20 @@ Veri modelleri için bkz. [prisma/schema.prisma](./prisma/schema.prisma).
 
 Yanıt formatı: `{ "data": [...], "meta": { total, page, limit, totalPages } }`
 
+### Cart (`/cart`)
+
+> Auth modülü henüz bitmediği için kullanıcı şu an `?userId=` query parametresinden alınıyor (geçici). Auth bitince JWT'ye taşınacak.
+
+| Metot | Yol | Açıklama |
+|-------|-----|----------|
+| GET | `/cart?userId=1` | Kullanıcının sepetini getirir (yoksa otomatik boş sepet oluşturur) |
+| POST | `/cart/items?userId=1` | Sepete ürün ekler — body: `{ productId, quantity }`. Ürün zaten sepetteyse miktar birleşir |
+| PATCH | `/cart/items/:productId?userId=1` | Sepetteki bir ürünün miktarını günceller — body: `{ quantity }` |
+| DELETE | `/cart/items/:productId?userId=1` | Sepetten tek bir ürünü çıkarır |
+| DELETE | `/cart?userId=1` | Sepeti tamamen boşaltır |
+
+İstenen miktar ürünün stoğunu aşarsa `400`, ürün ya da sepet bulunamazsa `404` döner. Sepet yanıtı, satırların `price × quantity` toplamı olan `total` alanını da içerir.
+
 Tüm endpoint'ler Swagger üzerinden test edilebilir: [http://localhost:3000/api](http://localhost:3000/api)
 
 ## Durum
@@ -115,6 +129,7 @@ Tamamlananlar:
 - Global validasyon (class-validator) + tutarlı hata yönetimi (`400` / `404` / `409`)
 - **Categories** modülü — tam CRUD
 - **Products** modülü — tam CRUD + görseller + arama/filtreleme/sayfalama
+- **Cart** modülü — ürün ekle/güncelle/çıkar/sepeti boşalt, stok kontrolü, otomatik sepet oluşturma
 - Seed: örnek kategoriler ve görselli ürünler (idempotent)
 
-Sıradaki işler: Auth (JWT), Users, Cart, Orders modülleri ve RFC 9457 standart hata formatı.
+Sıradaki işler: Auth (JWT), Users, Orders modülleri; Auth bitince Cart endpoint'lerinin `userId` query param'dan JWT'ye taşınması; RFC 9457 standart hata formatı.

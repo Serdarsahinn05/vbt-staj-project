@@ -1,4 +1,4 @@
-import { IsArray, IsInt, IsNotEmpty, IsNumber, IsPositive, IsString, Min } from "class-validator";
+import { IsArray, IsInt, IsNotEmpty, IsString, Matches, Min } from "class-validator";
 
 export class CreateProductDto {
     @IsNotEmpty()
@@ -10,9 +10,10 @@ export class CreateProductDto {
     description!: string;
 
     @IsNotEmpty()
-    @IsNumber()
-    @IsPositive()
-    price!: number;
+    @Matches(/^\d+(\.\d{1,2})?$/, {
+        message: 'price pozitif bir ondalık sayı olmalı (en fazla 2 basamak), örn. "99.90"',
+    })
+    price!: string;
 
     @IsNotEmpty()
     @IsInt()
