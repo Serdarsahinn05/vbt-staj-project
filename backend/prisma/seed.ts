@@ -7,8 +7,6 @@ const prisma = new PrismaClient({ adapter });
 
 async function main() {
   const categories = [
-    'Erkek Saat',
-    'Kadın Saat',
     'Akıllı Saat',
     'Klasik Saat',
     'Spor Saat',
@@ -43,6 +41,7 @@ async function main() {
       price: 285000,
       stock: 5,
       category: 'Lüks Saat',
+      gender: 'ERKEK' as const,
       images: img('submariner'),
     },
     {
@@ -51,6 +50,7 @@ async function main() {
       price: 180000,
       stock: 8,
       category: 'Lüks Saat',
+      gender: 'ERKEK' as const,
       images: img('seamaster'),
     },
     {
@@ -59,6 +59,7 @@ async function main() {
       price: 3500,
       stock: 40,
       category: 'Spor Saat',
+      gender: 'UNISEX' as const,
       images: img('gshock'),
     },
     {
@@ -66,7 +67,8 @@ async function main() {
       description: 'Uygun fiyatlı otomatik saat, günlük kullanım.',
       price: 5000,
       stock: 60,
-      category: 'Erkek Saat',
+      category: 'Klasik Saat',
+      gender: 'ERKEK' as const,
       images: img('seiko5'),
     },
     {
@@ -75,6 +77,7 @@ async function main() {
       price: 22000,
       stock: 25,
       category: 'Akıllı Saat',
+      gender: 'UNISEX' as const,
       images: img('applewatch'),
     },
     {
@@ -82,7 +85,8 @@ async function main() {
       description: 'Minimalist tasarım, deri kordon, kadın saati.',
       price: 4500,
       stock: 30,
-      category: 'Kadın Saat',
+      category: 'Klasik Saat',
+      gender: 'KADIN' as const,
       images: img('dwpetite'),
     },
   ];
@@ -96,6 +100,7 @@ async function main() {
         description: p.description,
         price: p.price,
         stock: p.stock,
+        gender: p.gender,
         images: p.images,
         categoryId: categoryId(p.category),
       })),

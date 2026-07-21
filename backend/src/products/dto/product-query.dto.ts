@@ -1,5 +1,6 @@
 import { Type } from "class-transformer";
-import { IsIn, IsInt, IsOptional, IsString, Min } from "class-validator";
+import { IsEnum, IsIn, IsInt, IsOptional, IsString, Min } from "class-validator";
+import { Gender } from "generated/prisma/client";
 
 export class ProductQueryDto {
   @IsOptional() @IsString()
@@ -7,6 +8,9 @@ export class ProductQueryDto {
 
   @IsOptional() @Type(() => Number) @IsInt()
   categoryId?: number;
+
+  @IsOptional() @IsEnum(Gender)
+  gender?: Gender;
 
   @IsOptional() @Type(() => Number) @Min(0)
   minPrice?: number;

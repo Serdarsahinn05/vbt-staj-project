@@ -97,10 +97,13 @@ Veri modelleri için bkz. [prisma/schema.prisma](./prisma/schema.prisma).
 | Parametre | Örnek | Ne yapar |
 |-----------|-------|----------|
 | `search` | `?search=rolex` | İsim ve açıklamada arar (kısmi, harf duyarsız) |
-| `categoryId` | `?categoryId=1` | Kategoriye göre filtreler |
+| `categoryId` | `?categoryId=1` | Kategoriye (stil) göre filtreler — Akıllı/Klasik/Spor/Lüks Saat |
+| `gender` | `?gender=ERKEK` | Cinsiyete göre filtreler — `ERKEK` / `KADIN` / `UNISEX` |
 | `minPrice` / `maxPrice` | `?minPrice=1000&maxPrice=5000` | Fiyat aralığı |
 | `sortBy` | `?sortBy=price` | Sıralama alanı (`price` / `name`) |
 | `page` / `limit` | `?page=2&limit=10` | Sayfalama (varsayılan `page=1`, `limit=10`) |
+
+`categoryId` ve `gender` birbirinden bağımsız iki eksendir, birlikte kullanılabilir — örn. `?gender=ERKEK&categoryId=2` "erkek + klasik saat" sonucunu verir.
 
 Yanıt formatı: `{ "data": [...], "meta": { total, page, limit, totalPages } }`
 
