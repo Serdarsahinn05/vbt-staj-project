@@ -21,6 +21,7 @@ export class ProductsService {
     ];
     }
     if (query.categoryId) where.categoryId = query.categoryId;
+    if (query.gender) where.gender = query.gender;
     if (query.minPrice !== undefined || query.maxPrice !== undefined) {
     where.price = {
         ...(query.minPrice !== undefined ? { gte: query.minPrice } : {}),

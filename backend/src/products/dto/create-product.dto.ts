@@ -1,4 +1,5 @@
-import { IsArray, IsInt, IsNotEmpty, IsString, Matches, Min } from "class-validator";
+import { IsArray, IsEnum, IsInt, IsNotEmpty, IsString, Matches, Min } from "class-validator";
+import { Gender } from "generated/prisma/client";
 
 export class CreateProductDto {
     @IsNotEmpty()
@@ -23,6 +24,10 @@ export class CreateProductDto {
     @IsNotEmpty()
     @IsInt()
     categoryId!: number;
+
+    @IsNotEmpty()
+    @IsEnum(Gender)
+    gender!: Gender;
 
     @IsArray()
     @IsString({ each: true })

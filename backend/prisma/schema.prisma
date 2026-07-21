@@ -33,6 +33,12 @@ model Category {
   products Product[]
 }
 
+enum Gender {
+  ERKEK
+  KADIN
+  UNISEX
+}
+
 model Product {
   id          Int     @id @default(autoincrement())
   name        String
@@ -40,6 +46,7 @@ model Product {
   price       Decimal
   stock       Int
   images      String[]
+  gender      Gender
 
   category   Category @relation(fields: [categoryId], references: [id])
   categoryId Int
