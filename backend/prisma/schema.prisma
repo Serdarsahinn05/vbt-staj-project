@@ -14,21 +14,34 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  name      String
-  role      String?
-  createdAt DateTime @default(now())
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  password     String
+  name         String
+  role         String?
+  refreshToken String?  
+  createdAt    DateTime @default(now())
 
-  cart   Cart?
-  orders Order[]
+  cart      Cart?
+  orders    Order[]
+  addresses Address[] // <-- EKLENDİ: Kullanıcının adres ilişkisi
+}
+
+// EKLENDİ: E-ticaret sipariş adresleri için Address modeli
+model Address {
+  id        Int      @id @default(autoincrement())
+  title     String   // Örn: "Ev", "İş"
+  city      String
+  district  String
+  detail    String
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 }
 
 model Category {
   id   Int    @id @default(autoincrement())
   name String @unique
-
 
   products Product[]
 }
@@ -40,7 +53,7 @@ enum Gender {
 }
 
 model Product {
-  id          Int     @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   name        String
   description String
   price       Decimal
@@ -110,6 +123,3 @@ model OrderItem {
   quantity        Int
   priceAtPurchase Decimal
 }
-
-
-
