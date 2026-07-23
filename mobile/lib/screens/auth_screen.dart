@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/screens/home_screen.dart';
+import 'package:mobile/widgets/auth_text_field.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -130,107 +131,21 @@ class _AuthScreenState extends State<AuthScreen> {
                           ),
                           const SizedBox(height: 30),
                           if (!_isLogin) ...[
-                            TextField(
-                              style: const TextStyle(color: Colors.white),
-                              cursorColor: const Color.fromARGB(
-                                255,
-                                214,
-                                170,
-                                103,
-                              ),
-                              decoration: InputDecoration(
-                                hintText: 'Ad Soyad',
-                                hintStyle: const TextStyle(
-                                  color: Colors.white38,
-                                ),
-                                floatingLabelBehavior:
-                                    FloatingLabelBehavior.never,
-                                prefixIcon: const Icon(
-                                  Icons.person_outline,
-                                  color: Colors.white38,
-                                ),
-                                filled: true,
-                                fillColor: const Color(0xFF0C0C0C),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide.none,
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(
-                                    color: Color.fromARGB(255, 214, 170, 103),
-                                    width: 1.2,
-                                  ),
-                                ),
-                              ),
+                            AuthTextField(
+                              hint: "AD SOYAD",
+                              icon: Icons.person_outline,
                             ),
                           ],
                           SizedBox(height: 14),
-                          TextField(
-                            style: const TextStyle(color: Colors.white),
-                            cursorColor: const Color.fromARGB(
-                              255,
-                              214,
-                              170,
-                              103,
-                            ),
-                            decoration: InputDecoration(
-                              hintText: 'E-posta',
-                              hintStyle: const TextStyle(color: Colors.white38),
-                              floatingLabelBehavior:
-                                  FloatingLabelBehavior.never,
-                              prefixIcon: const Icon(
-                                Icons.mail_outline,
-                                color: Colors.white38,
-                              ),
-                              filled: true,
-                              fillColor: const Color(0xFF0C0C0C),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Color.fromARGB(255, 214, 170, 103),
-                                  width: 1.2,
-                                ),
-                              ),
-                            ),
+                          AuthTextField(
+                            hint: "E-MAİL",
+                            icon: Icons.mail_outline,
                           ),
                           const SizedBox(height: 14),
-                          TextField(
+                          AuthTextField(
+                            hint: "ŞİFRE",
+                            icon: Icons.lock_outline,
                             obscureText: true,
-                            style: const TextStyle(color: Colors.white),
-                            cursorColor: const Color.fromARGB(
-                              255,
-                              214,
-                              170,
-                              103,
-                            ),
-                            decoration: InputDecoration(
-                              hintText: 'Şifre',
-                              hintStyle: const TextStyle(color: Colors.white38),
-                              floatingLabelBehavior:
-                                  FloatingLabelBehavior.never,
-                              prefixIcon: const Icon(
-                                Icons.lock_outline,
-                                color: Colors.white38,
-                              ),
-                              filled: true,
-                              fillColor: const Color(0xFF0C0C0C),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Color.fromARGB(255, 214, 170, 103),
-                                  width: 1.2,
-                                ),
-                              ),
-                            ),
                           ),
                           const SizedBox(height: 20),
                           SizedBox(
@@ -238,11 +153,12 @@ class _AuthScreenState extends State<AuthScreen> {
                             height: 52,
                             child: ElevatedButton(
                               onPressed: () {
-                                Navigator.pushReplacement(
+                                Navigator.pushAndRemoveUntil(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => const HomeScreen(),
+                                    builder: (_) => const HomeScreen(),
                                   ),
+                                  (route) => false, // geride sayfa bırakma
                                 );
                               },
                               style: ElevatedButton.styleFrom(
