@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/screens/product_detail.dart';
+import 'package:mobile/services/product_services.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -9,50 +11,10 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String _selectedGender = "TÜMÜ";
-  final List<Map<String, dynamic>> _products = [
-    {
-      'name': 'Rolex Submariner',
-      'category': 'Lüks Saat',
-      'gender': 'ERKEK',
-      'price': 285000,
-      'image': 'https://picsum.photos/seed/submariner/600/600',
-    },
-    {
-      'name': 'Omega Seamaster',
-      'category': 'Lüks Saat',
-      'gender': 'ERKEK',
-      'price': 180000,
-      'image': 'https://picsum.photos/seed/seamaster/600/600',
-    },
-    {
-      'name': 'Casio G-Shock',
-      'category': 'Spor Saat',
-      'gender': 'UNISEX',
-      'price': 3500,
-      'image': 'https://picsum.photos/seed/gshock/600/600',
-    },
-    {
-      'name': 'Seiko 5 Automatic',
-      'category': 'Klasik Saat',
-      'gender': 'ERKEK',
-      'price': 5000,
-      'image': 'https://picsum.photos/seed/seiko5/600/600',
-    },
-    {
-      'name': 'Apple Watch Series 9',
-      'category': 'Akıllı Saat',
-      'gender': 'UNISEX',
-      'price': 22000,
-      'image': 'https://picsum.photos/seed/applewatch/600/600',
-    },
-    {
-      'name': 'Daniel Wellington Petite',
-      'category': 'Klasik Saat',
-      'gender': 'KADIN',
-      'price': 4500,
-      'image': 'https://picsum.photos/seed/dwpetite/600/600',
-    },
-  ];
+
+  final _productService = ProductServices();
+  late final List<Map<String, dynamic>> _products = _productService
+      .getProducts();
 
   @override
   Widget build(BuildContext context) {
@@ -186,65 +148,75 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildProductCard(Map<String, dynamic> product) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 219, 214, 198),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AspectRatio(
-            aspectRatio: 1,
-            child: ColoredBox(
-              color: Colors.black,
-              child: Image.network(
-                product["image"] as String,
-                fit: BoxFit.cover,
-                width: double.infinity,
-                height: double.infinity,
-                errorBuilder: (context, error, stackTrace) => const Center(
-                  child: Icon(Icons.watch, color: Colors.white54, size: 40),
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DetailScreen(productId: product["id"] as int),
+          ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(255, 219, 214, 198),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AspectRatio(
+              aspectRatio: 1,
+              child: ColoredBox(
+                color: Colors.black,
+                child: Image.network(
+                  product["image"] as String,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
+                  errorBuilder: (context, error, stackTrace) => const Center(
+                    child: Icon(Icons.watch, color: Colors.white54, size: 40),
+                  ),
                 ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  product["name"] as String,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product["name"] as String,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  product["category"] as String,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Color.fromARGB(255, 90, 89, 89),
+                  const SizedBox(height: 4),
+                  Text(
+                    product["category"] as String,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Color.fromARGB(255, 90, 89, 89),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "₺${product["price"]}",
-                  style: const TextStyle(
-                    color: Color.fromARGB(255, 157, 114, 49),
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
+                  const SizedBox(height: 4),
+                  Text(
+                    "₺${product["price"]}",
+                    style: const TextStyle(
+                      color: Color.fromARGB(255, 157, 114, 49),
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
