@@ -18,7 +18,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   // Token geçerliyse bu metod çalışır
   async validate(payload: any) {
     // Buradan dönen değer, NestJS tarafından otomatik olarak "req.user" objesine yerleştirilir.
-    // Yani giriş yapan kullanıcının ID'sine ve E-postasına diğer dosyalardan kolayca ulaşabileceğiz.
-    return { userId: payload.sub, email: payload.email };
+    // Yani giriş yapan kullanıcının ID'sine, E-postasına ve rolüne diğer dosyalardan ulaşabileceğiz.
+    return { userId: payload.sub, email: payload.email, role: payload.role ?? null };
   }
 }

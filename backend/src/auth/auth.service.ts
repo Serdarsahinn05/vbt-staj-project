@@ -10,10 +10,10 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async getTokens(userId: number, email: string) {
+  async getTokens(userId: number, email: string, role?: string | null) {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
-        { sub: userId, email },
+        { sub: userId, email, role: role ?? null },
         { secret: process.env.JWT_SECRET || 'gizliAnahtar123', expiresIn: '15m' },
       ),
       this.jwtService.signAsync(
@@ -59,7 +59,7 @@ export class AuthService {
     const isPasswordValid = await bcrypt.compare(pass, user.password);
     if (!isPasswordValid) throw new UnauthorizedException('E-posta adresi veya şifre hatalı!');
 
-    const tokens = await this.getTokens(user.id, user.email);
+    const tokens = await this.getTokens(user.id, user.email, user.role);
     await this.updateRefreshTokenHash(user.id, tokens.refresh_token);
 
     return tokens;
@@ -81,7 +81,7 @@ export class AuthService {
         throw new ForbiddenException('Erişim engellendi');
       }
 
-      const newTokens = await this.getTokens(user.id, user.email);
+      const newTokens = await this.getTokens(user.id, user.email, user.role);
       await this.updateRefreshTokenHash(user.id, newTokens.refresh_token);
 
       return newTokens;
