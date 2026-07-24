@@ -4,6 +4,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductQueryDto } from './dto/product-query.dto';
+import { UpdateVariantDto } from './dto/update-variant.dto';
 
 @Injectable()
 export class ProductsService {
@@ -42,6 +43,7 @@ export class ProductsService {
         orderBy,
         skip: (page - 1) * limit,
         take: limit,
+        include: { variants: true, category: true },
       }),
       this.prisma.product.count({ where }),
     ]);
@@ -58,7 +60,7 @@ export class ProductsService {
   }
 
   async findOne(id: number) {
-    const product = await this.prisma.product.findUnique({where: { id }, include: { category: true }});
+    const product = await this.prisma.product.findUnique({where: { id }, include: { category: true, variants: true }});
     if (!product) {
       throw new NotFoundException('Ürün bulunamadı');
     }
@@ -66,9 +68,23 @@ export class ProductsService {
   }
 
   async create(dto: CreateProductDto) {
+    const { variants, ...productData } = dto;
     try {
       return await this.prisma.product.create({
-        data: dto,
+        data: {
+          ...productData,
+          variants: {
+            create: variants.map((v) => ({
+              colorName: v.colorName,
+              colorHex: v.colorHex,
+              images: v.images,
+
+              ...(v.price !== undefined ? { price: v.price } : {}),
+              ...(v.stock !== undefined ? { stock: v.stock } : {}),
+            })),
+          },
+        },
+        include: { variants: true, category: true },
       });
     } catch (e) {
       if (
@@ -83,10 +99,13 @@ export class ProductsService {
 
 
   async update(id: number, dto: UpdateProductDto) {
+
+    const { variants, ...productData } = dto;
     try {
       return await this.prisma.product.update({
         where: { id },
-        data: dto,
+        data: productData,
+        include: { variants: true, category: true },
       });
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2025') {
@@ -108,6 +127,21 @@ export class ProductsService {
     }
     throw e;
   }
+  }
+
+
+  async updateVariant(variantId: number, dto: UpdateVariantDto) {
+    try {
+      return await this.prisma.productVariant.update({
+        where: { id: variantId },
+        data: dto,
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2025') {
+        throw new NotFoundException('Varyant bulunamadı');
+      }
+      throw e;
+    }
   }
 
 

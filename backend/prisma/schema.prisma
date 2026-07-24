@@ -24,10 +24,11 @@ model User {
 
   cart      Cart?
   orders    Order[]
-  addresses Address[] // <-- EKLENDİ: Kullanıcının adres ilişkisi
+  addresses Address[] 
+  favorites Favorite[]
 }
 
-// EKLENDİ: E-ticaret sipariş adresleri için Address modeli
+
 model Address {
   id        Int      @id @default(autoincrement())
   title     String   // Örn: "Ev", "İş"
@@ -56,16 +57,46 @@ model Product {
   id          Int      @id @default(autoincrement())
   name        String
   description String
-  price       Decimal
-  stock       Int
-  images      String[]
+  price       Decimal  @default(0)
+  stock       Int      @default(0)
   gender      Gender
+  series      String?
 
   category   Category @relation(fields: [categoryId], references: [id])
   categoryId Int
 
+  variants   ProductVariant[]
   cartItems  CartItem[]
   orderItems OrderItem[]
+}
+
+model ProductVariant {
+  id        Int      @id @default(autoincrement())
+  colorName String   
+  colorHex  String   
+  images    String[]
+  price     Decimal  @default(0)
+  stock     Int      @default(0)
+  discount  Int      @default(0) 
+
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId Int
+
+  favorites Favorite[]
+}
+
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+
+  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  variantId Int
+
+  @@unique([userId, variantId])
 }
 
 model Cart {
