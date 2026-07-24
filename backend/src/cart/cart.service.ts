@@ -8,6 +8,12 @@ import { UpdateItemDto } from './dto/update-item.dto';
 export class CartService {
   constructor(private prisma: PrismaService) {}
 
+  private effectivePrice(price: Prisma.Decimal | number | string, discount: number): number {
+    const base = Number(price);
+    const net = base * (1 - (discount ?? 0) / 100);
+    return Math.round(net * 100) / 100;
+  }
+
   private async getOrCreateCart(userId: number) {
     const cart = await this.prisma.cart.findUnique({ where: { userId } });
     if (cart) return cart;
@@ -25,70 +31,80 @@ export class CartService {
   async getCart(userId: number) {
     const cart = await this.getOrCreateCart(userId);
 
-    const items = await this.prisma.cartItem.findMany({
+    const rows = await this.prisma.cartItem.findMany({
       where: { cartId: cart.id },
-      include: { product: true },
+      include: { variant: { include: { product: true } } },
     });
 
-    const total = items.reduce(
-      (sum, item) => sum + Number(item.product.price) * item.quantity,
-      0,
-    );
+    const items = rows.map((item) => {
+      const unitPrice = this.effectivePrice(item.variant.price, item.variant.discount);
+      return {
+        ...item,
+        unitPrice,
+        lineTotal: Math.round(unitPrice * item.quantity * 100) / 100,
+      };
+    });
+
+    const total = Math.round(
+      items.reduce((sum, i) => sum + i.lineTotal, 0) * 100,
+    ) / 100;
 
     return { id: cart.id, userId: cart.userId, items, total };
   }
 
   async addItem(userId: number, dto: AddItemDto) {
-    const product = await this.prisma.product.findUnique({ where: { id: dto.productId } });
-    if (!product) {
-      throw new NotFoundException('Ürün bulunamadı');
+    const variant = await this.prisma.productVariant.findUnique({
+      where: { id: dto.variantId },
+    });
+    if (!variant) {
+      throw new NotFoundException('Varyant bulunamadı');
     }
 
     const cart = await this.getOrCreateCart(userId);
 
     const existing = await this.prisma.cartItem.findUnique({
-      where: { cartId_productId: { cartId: cart.id, productId: dto.productId } },
+      where: { cartId_variantId: { cartId: cart.id, variantId: dto.variantId } },
     });
 
     const quantity = (existing?.quantity ?? 0) + dto.quantity;
-    if (quantity > product.stock) {
+    if (quantity > variant.stock) {
       throw new BadRequestException('Yetersiz stok');
     }
 
     return this.prisma.cartItem.upsert({
-      where: { cartId_productId: { cartId: cart.id, productId: dto.productId } },
-      create: { cartId: cart.id, productId: dto.productId, quantity },
+      where: { cartId_variantId: { cartId: cart.id, variantId: dto.variantId } },
+      create: { cartId: cart.id, variantId: dto.variantId, quantity },
       update: { quantity },
-      include: { product: true },
+      include: { variant: { include: { product: true } } },
     });
   }
 
-  async updateItem(userId: number, productId: number, dto: UpdateItemDto) {
+  async updateItem(userId: number, variantId: number, dto: UpdateItemDto) {
     const cart = await this.prisma.cart.findUnique({ where: { userId } });
     if (!cart) {
       throw new NotFoundException('Sepet bulunamadı');
     }
 
     const item = await this.prisma.cartItem.findUnique({
-      where: { cartId_productId: { cartId: cart.id, productId } },
-      include: { product: true },
+      where: { cartId_variantId: { cartId: cart.id, variantId } },
+      include: { variant: true },
     });
     if (!item) {
       throw new NotFoundException('Ürün sepette yok');
     }
 
-    if (dto.quantity > item.product.stock) {
+    if (dto.quantity > item.variant.stock) {
       throw new BadRequestException('Yetersiz stok');
     }
 
     return this.prisma.cartItem.update({
-      where: { cartId_productId: { cartId: cart.id, productId } },
+      where: { cartId_variantId: { cartId: cart.id, variantId } },
       data: { quantity: dto.quantity },
-      include: { product: true },
+      include: { variant: { include: { product: true } } },
     });
   }
 
-  async removeItem(userId: number, productId: number) {
+  async removeItem(userId: number, variantId: number) {
     const cart = await this.prisma.cart.findUnique({ where: { userId } });
     if (!cart) {
       throw new NotFoundException('Sepet bulunamadı');
@@ -96,7 +112,7 @@ export class CartService {
 
     try {
       return await this.prisma.cartItem.delete({
-        where: { cartId_productId: { cartId: cart.id, productId } },
+        where: { cartId_variantId: { cartId: cart.id, variantId } },
       });
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2025') {
