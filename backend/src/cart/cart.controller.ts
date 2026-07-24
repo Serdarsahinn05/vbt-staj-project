@@ -25,23 +25,23 @@ export class CartController {
     return this.cartService.addItem(userId, body);
   }
 
-  @Patch('items/:productId')
+  @Patch('items/:variantId')
   @ApiResponse({ status: 200, description: 'Ürün başarıyla güncellendi.' })
   updateItem(
     @GetUser('userId') userId: number,
-    @Param('productId', ParseIntPipe) productId: number,
+    @Param('variantId', ParseIntPipe) variantId: number,
     @Body() body: UpdateItemDto,
   ) {
-    return this.cartService.updateItem(userId, productId, body);
+    return this.cartService.updateItem(userId, variantId, body);
   }
 
-  @Delete('items/:productId')
+  @Delete('items/:variantId')
   @ApiResponse({ status: 200, description: 'Ürün sepetten çıkarıldı.' })
   removeItem(
     @GetUser('userId') userId: number,
-    @Param('productId', ParseIntPipe) productId: number,
+    @Param('variantId', ParseIntPipe) variantId: number,
   ) {
-    return this.cartService.removeItem(userId, productId);
+    return this.cartService.removeItem(userId, variantId);
   }
 
   @Delete()

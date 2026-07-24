@@ -13,7 +13,7 @@ import {
 } from "class-validator";
 import { Gender } from "generated/prisma/client";
 
-// Bir ürünün tek bir renk seçeneği (varyant). Fiyat ve stok renk bazında tutulur.
+
 export class ProductVariantDto {
     @IsNotEmpty()
     @IsString()
@@ -27,7 +27,7 @@ export class ProductVariantDto {
     @IsString({ each: true })
     images!: string[];
 
-    // Fiyat/stok şimdilik opsiyonel; verilmezse şemadaki default (0) kullanılır.
+
     @IsOptional()
     @Matches(/^\d+(\.\d{1,2})?$/, {
         message: 'price pozitif bir ondalık sayı olmalı (en fazla 2 basamak), örn. "99.90"',
@@ -57,11 +57,28 @@ export class CreateProductDto {
     @IsString()
     series?: string;
 
+
+    @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
+    styleTags?: string[];
+
+
+    @IsOptional() @IsString() caseSize?: string;        // Model Kasası
+    @IsOptional() @IsString() material?: string;        // Malzeme
+    @IsOptional() @IsString() bezel?: string;           // Çerçeve
+    @IsOptional() @IsString() crown?: string;           // Kurma Kolu
+    @IsOptional() @IsString() crystal?: string;         // Kristal
+    @IsOptional() @IsString() waterResistance?: string; // Su Geçirmezlik
+    @IsOptional() @IsString() movement?: string;        // Mekanizma
+    @IsOptional() @IsString() strap?: string;           // Bilezik / Kayış
+    @IsOptional() @IsString() dial?: string;            // Kadran
+
     @IsNotEmpty()
     @IsInt()
     categoryId!: number;
 
-    // Ürünün renk seçenekleri — en az bir renk zorunlu.
+
     @IsArray()
     @ArrayMinSize(1)
     @ValidateNested({ each: true })

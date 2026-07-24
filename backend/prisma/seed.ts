@@ -26,29 +26,48 @@ const CATEGORIES = [
 
 type Variant = {
   colorName: string;
-  colorHex: string; 
-  images: string[]; 
+  colorHex: string;
+  images: string[];
 };
 
 type SeedProduct = {
   name: string;
   series: 'Signature' | 'Horizon' | 'Apex';
-  description: string;
-  category: string; 
+  description: string; // "Görünüm"
+  category: string; // birincil stil (CATEGORIES içinden)
+  styleTags: string[]; // "Kategori" satırındaki stiller
   gender: 'ERKEK' | 'KADIN' | 'UNISEX';
+
+  caseSize: string;
+  material: string;
+  bezel: string;
+  crown: string;
+  crystal: string;
+  waterResistance: string;
+  movement: string;
+  strap: string;
+  dial: string;
   variants: Variant[];
 };
-
 
 const PRODUCTS: SeedProduct[] = [
   // ---------- Signature Serisi ----------
   {
     name: 'Vesper',
     series: 'Signature',
-    description:
-      'Ultra ince, zarif dress watch. 39 mm ultra ince yuvarlak kasa, safir kristal, otomatik mekanizma, timsah derisi kayış. Sade ve prestijli duruş.',
+    description: 'Ultra ince, zarif ve temiz dress watch. Çok sade ve prestijli duruş.',
     category: 'Dress Saat',
+    styleTags: ['Lüks', 'Dress'],
     gender: 'UNISEX',
+    caseSize: '39 mm, ultra ince yuvarlak kasa',
+    material: 'Rose Gold (Renk 1) / 316L Paslanmaz Çelik – Beyaz Altın tonu (Renk 2)',
+    bezel: 'Cilalı',
+    crown: 'Vidalanmayan, klasik',
+    crystal: 'Safir kristal',
+    waterResistance: '50 metre',
+    movement: 'Otomatik',
+    strap: 'Timsah derisi + katlanır toka',
+    dial: 'Temiz fırçalanmış, sade 3 ibreli',
     variants: [
       { colorName: 'Rose Gold', colorHex: '#B76E79', images: imgs('vesper-gold') },
       { colorName: 'Beyaz Altın', colorHex: '#E5E4E2', images: imgs('vesper-silver') },
@@ -57,10 +76,19 @@ const PRODUCTS: SeedProduct[] = [
   {
     name: 'Aurelius',
     series: 'Signature',
-    description:
-      'Klasik ve aristokrat. 40 mm çelik kasa, guilloché desenli gümüş kadran, fırçalı + cilalı metal bilezik. Zamansız bir duruş.',
+    description: 'Klasik ve aristokrat. Guilloché desenli kadran + metal bilezik ile zamansız bir duruş.',
     category: 'Dress Saat',
+    styleTags: ['Lüks', 'Dress'],
     gender: 'UNISEX',
+    caseSize: '40 mm, klasik yuvarlak kasa',
+    material: '316L Paslanmaz Çelik – Beyaz Altın tonu',
+    bezel: 'Cilalı',
+    crown: 'Vidalanmayan, düz yüzeyli',
+    crystal: 'Safir kristal',
+    waterResistance: '50 metre',
+    movement: 'Otomatik',
+    strap: 'Metal bilezik (fırçalı + cilalı baklalar)',
+    dial: 'Gümüş ton, ince guilloché desenli',
     variants: [
       { colorName: 'Beyaz Altın / Çelik', colorHex: '#E5E4E2', images: imgs('aurelius') },
     ],
@@ -68,10 +96,19 @@ const PRODUCTS: SeedProduct[] = [
   {
     name: 'Orion',
     series: 'Signature',
-    description:
-      'Güçlü ve erkeksi. 42 mm çelik kasa, koyu lacivert kadran, 3’te tarih penceresi, Super-LumiNova ışıklı ibreler, 100 m su geçirmez.',
+    description: 'Güçlü ve erkeksi. Koyu lacivert kadran, tarih penceresi ve ışıklı ibrelerle net karakter.',
     category: 'Lüks Saat',
+    styleTags: ['Lüks'],
     gender: 'ERKEK',
+    caseSize: '42 mm, güçlü kasa, belirgin lug’lar',
+    material: '316L Paslanmaz Çelik',
+    bezel: 'Cilalı, hafif kalınlaştırılmış',
+    crown: 'Vidalanmayan, daha büyük',
+    crystal: 'Safir kristal',
+    waterResistance: '100 metre',
+    movement: 'Otomatik',
+    strap: 'Siyah timsah derisi + çelik toka',
+    dial: 'Koyu lacivert, 3’te tarih penceresi, Super-LumiNova ışıklı ibre ve indeksler',
     variants: [
       { colorName: 'Lacivert', colorHex: '#1F3A5F', images: imgs('orion') },
     ],
@@ -79,10 +116,19 @@ const PRODUCTS: SeedProduct[] = [
   {
     name: 'Solace',
     series: 'Signature',
-    description:
-      'Küçük, ince ve mücevhervari. 36 mm çelik kasa, soft sedef (mother-of-pearl) kadran, ince metal bilezik. Belirgin şekilde feminen.',
+    description: 'Küçük, çok ince ve mücevhervari. Soft mother-of-pearl kadran ve ince metal bilezik ile belirgin şekilde feminen.',
     category: 'Dress Saat',
+    styleTags: ['Lüks', 'Dress'],
     gender: 'KADIN',
+    caseSize: '36 mm, çok ince ve yumuşak hatlı',
+    material: '316L Paslanmaz Çelik',
+    bezel: 'Cilalı',
+    crown: 'Klasik, küçük',
+    crystal: 'Safir kristal',
+    waterResistance: '30 metre',
+    movement: 'Otomatik',
+    strap: 'İnce metal bilezik',
+    dial: 'Soft mother-of-pearl (sedef), minimal ve feminen',
     variants: [
       { colorName: 'Sedef (Mother-of-Pearl)', colorHex: '#F0EAD6', images: imgs('solace') },
     ],
@@ -90,10 +136,19 @@ const PRODUCTS: SeedProduct[] = [
   {
     name: 'Lunaris',
     series: 'Signature',
-    description:
-      'En prestijli model. 40 mm kasa, ay evresi (moon phase) komplikasyonu ve takımyıldızı detaylı gökyüzü temalı kadran, timsah derisi kayış.',
+    description: 'En prestijli model. Ay evresi ve takımyıldızı detayıyla gökyüzü temalı.',
     category: 'Lüks Saat',
+    styleTags: ['Lüks'],
     gender: 'UNISEX',
+    caseSize: '40 mm',
+    material: 'Rose Gold (Renk 1) / Silver (Renk 2)',
+    bezel: 'Cilalı',
+    crown: 'Klasik',
+    crystal: 'Safir kristal',
+    waterResistance: '50 metre',
+    movement: 'Otomatik, ay evresi komplikasyonlu',
+    strap: 'Timsah derisi',
+    dial: 'Ay evresi + takımyıldızı detaylı',
     variants: [
       { colorName: 'Rose Gold', colorHex: '#B76E79', images: imgs('lunaris-gold') },
       { colorName: 'Silver', colorHex: '#C0C0C0', images: imgs('lunaris-silver') },
@@ -104,10 +159,19 @@ const PRODUCTS: SeedProduct[] = [
   {
     name: 'Nova',
     series: 'Horizon',
-    description:
-      'Ultra ince titanyum kasa, modern ve minimalist. 38 mm, entegre metal bilezik, safir kristal, otomatik. Çok hafif ve çağdaş.',
+    description: 'Ultra ince titanyum kasa, modern ve minimalist. Çok hafif ve çağdaş.',
     category: 'Casual Saat',
+    styleTags: ['Lüks', 'Casual'],
     gender: 'UNISEX',
+    caseSize: '38 mm, ultra ince',
+    material: 'Titanyum',
+    bezel: 'Cilalı',
+    crown: 'Klasik',
+    crystal: 'Safir kristal',
+    waterResistance: '50 metre',
+    movement: 'Otomatik',
+    strap: 'Entegre metal bilezik',
+    dial: 'Minimalist',
     variants: [
       { colorName: 'Titanyum', colorHex: '#878681', images: imgs('nova') },
     ],
@@ -115,10 +179,19 @@ const PRODUCTS: SeedProduct[] = [
   {
     name: 'Drift',
     series: 'Horizon',
-    description:
-      'En rahat, günlük model. 40 mm çelik kasa, değiştirilebilir kumaş (NATO / Canvas) kayış, yüksek okunabilirlik, 100 m su geçirmez.',
+    description: 'En rahat ve günlük model. Kumaş kayış seçenekleriyle sportif-casual duruş.',
     category: 'Casual Saat',
+    styleTags: ['Casual', 'Spor'],
     gender: 'ERKEK',
+    caseSize: '40 mm',
+    material: '316L Paslanmaz Çelik',
+    bezel: 'Cilalı',
+    crown: 'Klasik',
+    crystal: 'Safir kristal',
+    waterResistance: '100 metre',
+    movement: 'Otomatik',
+    strap: 'Kumaş (NATO / Canvas) – değiştirilebilir',
+    dial: 'Temiz ve yüksek okunabilirlik',
     variants: [
       { colorName: 'Çelik', colorHex: '#C0C0C0', images: imgs('drift') },
     ],
@@ -128,10 +201,19 @@ const PRODUCTS: SeedProduct[] = [
   {
     name: 'Valor',
     series: 'Apex',
-    description:
-      'Sportif-lüks otomatik kronograf. 42 mm çelik kasa, 3 kovanlı kronograf kadranı, vidalanabilir kurma kolu, 100 m su geçirmez.',
+    description: 'Sportif-lüks kronograf. 3 kovanlı kadran ile fonksiyonel ve güçlü duruş.',
     category: 'Spor Saat',
+    styleTags: ['Spor', 'Lüks'],
     gender: 'ERKEK',
+    caseSize: '42 mm',
+    material: '316L Paslanmaz Çelik',
+    bezel: 'Cilalı veya seramik',
+    crown: 'Vidalanabilir',
+    crystal: 'Safir kristal',
+    waterResistance: '100 metre',
+    movement: 'Otomatik kronograf',
+    strap: 'Metal bilezik veya kauçuk',
+    dial: 'Kronograf kadranı (3 kovanlı)',
     variants: [
       { colorName: 'Çelik', colorHex: '#C0C0C0', images: imgs('valor') },
     ],
@@ -139,10 +221,19 @@ const PRODUCTS: SeedProduct[] = [
   {
     name: 'Void',
     series: 'Apex',
-    description:
-      'Agresif ve modern. 41 mm tam siyah seramik yapı, mat siyah minimal kadran, siyah kauçuk/seramik bilezik. En teknik ve karanlık model.',
+    description: 'Agresif ve modern. Tamamen siyah seramik yapı ile en teknik ve karanlık model.',
     category: 'Spor Saat',
+    styleTags: ['Spor'],
     gender: 'ERKEK',
+    caseSize: '41 mm',
+    material: 'Tam siyah seramik',
+    bezel: 'Seramik',
+    crown: 'Seramik',
+    crystal: 'Safir kristal',
+    waterResistance: '100 metre',
+    movement: 'Otomatik',
+    strap: 'Siyah kauçuk veya seramik bilezik',
+    dial: 'Mat siyah, minimal',
     variants: [
       { colorName: 'Siyah Seramik', colorHex: '#1C1C1C', images: imgs('void') },
     ],
@@ -150,10 +241,19 @@ const PRODUCTS: SeedProduct[] = [
   {
     name: 'Iris',
     series: 'Apex',
-    description:
-      'Sportif-zarif kadın modeli. 37 mm çelik kasa, 3’te tarih penceresi, metal bilezik veya ince kauçuk, temiz ve okunabilir kadran.',
+    description: 'Sportif-zarif. Tarih pencereli, daha aktif ve modern kadın modeli.',
     category: 'Spor Saat',
+    styleTags: ['Spor'],
     gender: 'KADIN',
+    caseSize: '37 mm',
+    material: '316L Paslanmaz Çelik',
+    bezel: 'Cilalı',
+    crown: 'Klasik',
+    crystal: 'Safir kristal',
+    waterResistance: '50 metre',
+    movement: 'Otomatik',
+    strap: 'Metal bilezik veya ince kauçuk',
+    dial: 'Temiz, 3’te tarih penceresi, modern ve okunabilir',
     variants: [
       { colorName: 'Çelik', colorHex: '#C0C0C0', images: imgs('iris') },
     ],
@@ -161,7 +261,6 @@ const PRODUCTS: SeedProduct[] = [
 ];
 
 async function main() {
-
   const adminEmail = 'admin@zemrek.com';
   const adminPasswordHash = await bcrypt.hash('Admin123!', 10);
   await prisma.user.upsert({
@@ -175,21 +274,19 @@ async function main() {
     },
   });
 
-
   await prisma.category.createMany({
     data: CATEGORIES.map((name) => ({ name })),
     skipDuplicates: true,
   });
 
-
   await prisma.cartItem.deleteMany();
   await prisma.orderItem.deleteMany();
   await prisma.product.deleteMany(); 
 
-
   await prisma.category.deleteMany({
     where: { name: { notIn: CATEGORIES } },
   });
+
 
   const allCategories = await prisma.category.findMany();
   const categoryId = (name: string): number => {
@@ -198,6 +295,7 @@ async function main() {
     return found.id;
   };
 
+
   for (const p of PRODUCTS) {
     await prisma.product.create({
       data: {
@@ -205,6 +303,16 @@ async function main() {
         description: p.description,
         gender: p.gender,
         series: p.series,
+        styleTags: p.styleTags,
+        caseSize: p.caseSize,
+        material: p.material,
+        bezel: p.bezel,
+        crown: p.crown,
+        crystal: p.crystal,
+        waterResistance: p.waterResistance,
+        movement: p.movement,
+        strap: p.strap,
+        dial: p.dial,
         categoryId: categoryId(p.category),
 
         variants: {
