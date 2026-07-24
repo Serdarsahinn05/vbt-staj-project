@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/screens/home_screen.dart';
+import 'package:mobile/screens/main_shell.dart';
 import 'package:mobile/widgets/auth_text_field.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -156,7 +156,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                 Navigator.pushAndRemoveUntil(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => const HomeScreen(),
+                                    builder: (_) => const MainShell(),
                                   ),
                                   (route) => false, // geride sayfa bırakma
                                 );
