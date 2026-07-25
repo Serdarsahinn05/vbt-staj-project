@@ -86,7 +86,7 @@ model Product {
 model Review {
   id        Int      @id @default(autoincrement())
   rating    Int // 1-5
-  comment   String
+  comment   String? // yorum zorunlu değil, sadece puan verilebilir
   createdAt DateTime @default(now())
 
   user      User @relation(fields: [userId], references: [id], onDelete: Cascade)

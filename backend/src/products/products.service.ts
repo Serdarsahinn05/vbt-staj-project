@@ -91,11 +91,13 @@ export class ProductsService {
         include: { variants: true, category: true },
       });
     } catch (e) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2003'
-      ) {
-        throw new BadRequestException('Geçersiz Kategori');
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2003') {
+          throw new BadRequestException('Geçersiz Kategori');
+        }
+        if (e.code === 'P2002') {
+          throw new BadRequestException('Bu slug zaten kullanılıyor');
+        }
       }
       throw e;
     }
@@ -112,8 +114,13 @@ export class ProductsService {
         include: { variants: true, category: true },
       });
     } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2025') {
-        throw new NotFoundException('Ürün bulunamadı');
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') {
+          throw new NotFoundException('Ürün bulunamadı');
+        }
+        if (e.code === 'P2002') {
+          throw new BadRequestException('Bu slug zaten kullanılıyor');
+        }
       }
       throw e;
       }
