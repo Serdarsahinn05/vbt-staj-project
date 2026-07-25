@@ -42,8 +42,12 @@ type RowState = { kind: "saved" } | { kind: "error"; message: string };
 const GENDER_LABEL: Record<Gender, string> = {
   ERKEK: "Erkek",
   KADIN: "Kadın",
-  UNISEX: "Erkek / Kadın", // "Unisex" göstermiyoruz; her iki kategoride de yer alır
 };
+
+/** Ürün iki cinsiyete birden ait olabiliyor: "Erkek / Kadın". */
+function genderText(genders: Gender[]): string {
+  return genders.map((g) => GENDER_LABEL[g]).join(" / ");
+}
 
 function fieldError(
   field: PriceField | "stock",
@@ -553,7 +557,7 @@ function ProductGroup({
         </h2>
         {product.series && <Badge>{product.series}</Badge>}
         <span className="text-small text-body">
-          {GENDER_LABEL[product.gender]}
+          {genderText(product.genders)}
         </span>
         {product.category && (
           <span className="text-small text-body">

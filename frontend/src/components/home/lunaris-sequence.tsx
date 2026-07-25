@@ -483,14 +483,20 @@ export function LunarisSequence({
         {/* Sekans biterken çıkan kapanış. */}
         <div
           ref={outroRef}
-          className="absolute inset-x-0 bottom-0 top-auto z-30 flex flex-col items-center gap-5 px-6 pb-20 text-center max-md:pb-12"
+          className="absolute inset-x-0 bottom-0 top-auto z-30 flex flex-col items-center gap-5 px-6 pb-20 pt-28 text-center max-md:pb-12"
           style={{ opacity: 0, pointerEvents: "none" }}
         >
+          {/* Kapanış yazısı kadranın parlak kısmına denk geliyor; alttan yukarı
+              açılan karartma olmadan ne başlık ne fiyat okunuyor. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 top-0 -z-10 bg-[linear-gradient(to_top,var(--color-graphite-700)_20%,rgba(13,13,13,0.85)_55%,transparent)]"
+          />
           <div>
-            <div className="font-heading text-[clamp(26px,4vw,40px)] font-semibold text-on-dark">
+            <div className="font-heading text-[clamp(26px,4vw,40px)] font-semibold text-on-dark [text-shadow:0_2px_18px_rgba(13,13,13,0.8)]">
               Lunaris
             </div>
-            <div className="mt-2 text-body text-on-dark-muted">
+            <div className="mt-2 text-[15px] font-medium text-on-dark [text-shadow:0_1px_12px_rgba(13,13,13,0.9)]">
               {priceLabel} · {colorLabel}
             </div>
           </div>

@@ -15,3 +15,12 @@ export function formatPrice(value: number | string): string {
 export function formatPriceOrPending(value: number): string {
   return value > 0 ? formatPrice(value) : "Fiyat yakında";
 }
+
+/** Yorum tarihleri: "14 Mart 2026". */
+export function formatDate(iso: string): string {
+  return new Intl.DateTimeFormat("tr-TR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(iso));
+}

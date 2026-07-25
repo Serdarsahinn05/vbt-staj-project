@@ -24,6 +24,11 @@ export function useCart() {
     return entry ? [{ item, ...entry }] : [];
   });
 
+  /* Rozet ve toplamlar satırlardan sayılıyor, ham `items`'tan değil: katalogdan
+     düşmüş bir varyant listede gösterilemiyor, sayılırsa sepet boşken rozette
+     ürün varmış gibi görünüyor. */
+  const count = rows.reduce((n, row) => n + row.item.quantity, 0);
+
   const subtotal = rows.reduce(
     (sum, row) => sum + row.variant.price * row.item.quantity,
     0,
@@ -34,6 +39,7 @@ export function useCart() {
 
   return {
     rows,
+    count,
     subtotal,
     shipping,
     total: subtotal + shipping,

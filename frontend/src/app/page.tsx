@@ -6,13 +6,23 @@ import { Eyebrow } from "@/components/ui/eyebrow";
 import { ProductCard } from "@/components/ui/product-card";
 import { ProductImage } from "@/components/ui/product-image";
 import { loadCatalog } from "@/lib/catalog-api";
-import { SERIES_ORDER, defaultVariant, featuredProducts } from "@/lib/catalog";
+import {
+  SERIES_ORDER,
+  defaultVariant,
+  discounted,
+  featuredProducts,
+  maxDiscount,
+  newArrivals,
+} from "@/lib/catalog";
 import { formatPriceOrPending } from "@/lib/format";
 
 export default async function Home() {
   const { products, failed } = await loadCatalog();
 
   const featured = featuredProducts(products);
+  const yeniler = newArrivals(products);
+  const indirimliler = discounted(products);
+  const enYuksekIndirim = indirimliler.length > 0 ? maxDiscount(indirimliler[0]) : 0;
 
   /* Ana sayfanın anlatısı Lunaris üzerine kurulu: kaydırma sekansı da, hero
      ve hikaye görselleri de o modelden geliyor. Lunaris'in sekiz fotoğrafı
@@ -152,6 +162,59 @@ export default async function Home() {
           )}
         </div>
       </section>
+
+      {/* ---------- Yeni Gelenler ---------- */}
+      {yeniler.length > 0 && (
+        <section className="bg-page">
+          <div className="mx-auto max-w-[1280px] px-8 py-20 max-md:px-4 max-md:py-12">
+            <div className="mb-9 flex flex-wrap items-end justify-between gap-6 max-md:mb-6">
+              <div>
+                <Eyebrow className="mb-2.5">Yeni Gelenler</Eyebrow>
+                <h2 className="font-heading text-h2 font-semibold text-heading">
+                  Koleksiyona Yeni Katılanlar
+                </h2>
+              </div>
+              <Link
+                href="/koleksiyon"
+                className="text-[14px] font-semibold text-primary transition-colors duration-[var(--duration-fast)] ease-standard hover:text-primary-hover"
+              >
+                Tüm Koleksiyon →
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-6 max-sm:grid-cols-1 max-sm:gap-4">
+              {yeniler.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ---------- İndirimdekiler ---------- */}
+      {indirimliler.length > 0 && (
+        <section className="border-y border-accent/20 bg-accent-soft/40">
+          <div className="mx-auto max-w-[1280px] px-8 py-20 max-md:px-4 max-md:py-12">
+            <div className="mb-9 flex flex-wrap items-end justify-between gap-6 max-md:mb-6">
+              <div>
+                <Eyebrow className="mb-2.5">Fırsatlar</Eyebrow>
+                <h2 className="font-heading text-h2 font-semibold text-heading">
+                  Sezon İndirimi
+                </h2>
+                <p className="mt-2 max-w-[46ch] text-small text-body">
+                  Seçili modellerde %{enYuksekIndirim}&apos;e varan indirim.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-6 max-sm:grid-cols-1 max-sm:gap-4">
+              {indirimliler.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ---------- Seriler ----------
           Sayfadaki tek yumuşak yeşil alan: emerald-100 zemin, üstünde beyaz

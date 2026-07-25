@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { TrashIcon } from "@/components/ui/icons";
 import { Input } from "@/components/ui/input";
 import { Notice } from "@/components/ui/notice";
 import { PanelSkeleton } from "@/components/ui/skeleton";
@@ -306,8 +307,9 @@ function AddressSection({
                 type="button"
                 onClick={() => destroy.mutate(address.id)}
                 disabled={destroy.isPending}
-                className="cursor-pointer text-small text-body underline-offset-4 transition-colors hover:text-primary hover:underline disabled:opacity-50"
+                className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 text-small text-body underline-offset-4 transition-colors hover:text-primary hover:underline disabled:opacity-50"
               >
+                <TrashIcon size={15} />
                 Sil
               </button>
             </li>

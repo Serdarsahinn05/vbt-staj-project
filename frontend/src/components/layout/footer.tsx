@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Logo } from "@/components/ui/logo";
+import { Logo, Wordmark } from "@/components/ui/logo";
 import { SERIES_ORDER } from "@/lib/catalog";
 
 /* Footer — graphite-700 zemin, logo 64px, gold-300 kolon başlıkları. */
@@ -56,7 +56,10 @@ export function Footer() {
       <div className="mx-auto max-w-[1280px] px-8 pb-8 pt-18 max-md:px-4 max-md:pt-12">
         <div className="grid grid-cols-[repeat(auto-fit,minmax(170px,1fr))] gap-10 max-md:grid-cols-2 max-[480px]:grid-cols-1">
           <div>
-            <Logo className="h-16 max-md:h-12" />
+            <div className="flex items-center gap-3">
+              <Logo className="h-16 max-md:h-12" />
+              <Wordmark className="h-7 max-md:h-5" />
+            </div>
             <p className="mt-4 max-w-[220px] text-small leading-[1.6] text-on-dark-muted">
               Zamansız zarafeti keşfedin.
             </p>

@@ -7,19 +7,43 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { HeartToggle } from "@/components/ui/heart";
 import { CardPending } from "@/components/ui/link-pending";
 import { ProductImage } from "@/components/ui/product-image";
+import { Stars } from "@/components/ui/stars";
 import { useFavorites } from "@/hooks/use-favorites";
+import { useReviews } from "@/hooks/use-reviews";
 import {
   defaultVariant,
+  isNew,
+  isNewest,
   type CatalogProduct,
   type CatalogVariant,
 } from "@/lib/catalog";
 import { formatPrice, formatPriceOrPending } from "@/lib/format";
 import { useCartStore } from "@/stores/cart-store";
+import { toast } from "@/stores/toast-store";
 
 /* Beyaz yüzey kart, 4:5 görsel. Görsele tıklayınca detaya gider;
    hover'da koyu geçiş üstünde "Sepete Ekle" ve "İncele" belirir.
    Fiyat, stok ve görsel kartın gösterdiği renge aittir; favoriler sayfası
    `variant` vererek favoriye alınan rengi gösterir. */
+
+/* Kart puanı. Ürün listesi ucu ortalama puanı döndürmediği için her kart
+   kendi özetini çekiyor; sorgu ürün başına önbelleklendiğinden aynı ürün
+   birden çok yerde görünse de tek istek atılıyor. Puanı olmayan üründe
+   hiçbir şey basılmıyor — "0 yorum" göstermek boş yer kaplıyor. */
+function CardRating({ productId }: { productId: number }) {
+  const { average, count } = useReviews(productId);
+  if (count === 0) return null;
+
+  return (
+    <div className="mt-2 flex items-center gap-2 text-small">
+      <Stars value={average} size={13} />
+      <span className="font-heading font-semibold text-heading">
+        {average.toFixed(1)}
+      </span>
+      <span className="text-body">({count})</span>
+    </div>
+  );
+}
 
 function BagIcon() {
   return (
@@ -81,6 +105,14 @@ export function ProductCard({
     add(variant.id, 1);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
+    toast({
+      title: "Sepete eklendi",
+      description:
+        product.variants.length > 1
+          ? `${product.name} · ${variant.colorName}`
+          : product.name,
+      action: { label: "Sepete Git", href: "/sepet" },
+    });
   }
 
   return (
@@ -106,6 +138,13 @@ export function ProductCard({
         </Link>
 
         <div className="absolute left-3 top-3 z-[3] flex flex-col items-start gap-2">
+          {/* "En Yeni" tek bir modelde olduğu için emerald ile ayrılıyor;
+              gold rozet indirime ayrılmış durumda. */}
+          {isNewest(product) ? (
+            <Badge tone="emerald">En Yeni</Badge>
+          ) : (
+            isNew(product) && <Badge tone="emerald">Yeni</Badge>
+          )}
           {variant.discount > 0 && <Badge>%{variant.discount} indirim</Badge>}
           {soldOut && <Badge tone="dark">Tükendi</Badge>}
         </div>
@@ -158,6 +197,8 @@ export function ProductCard({
           {product.genders.join(" / ")}
           {product.variants.length > 1 && ` · ${variant.colorName}`}
         </div>
+
+        <CardRating productId={product.id} />
 
         <div className="mt-2.5 flex flex-wrap items-baseline gap-2">
           <span className="font-heading text-body-lg font-semibold text-heading">

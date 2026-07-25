@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { ProductCard } from "@/components/ui/product-card";
 import { cn } from "@/lib/cn";
 import {
@@ -30,16 +29,23 @@ const chip =
   "cursor-pointer rounded-pill border px-4 py-2 text-small font-medium transition-all " +
   "duration-[var(--duration-fast)] ease-standard active:scale-[0.98]";
 
-export function CollectionGrid({ products }: { products: CatalogProduct[] }) {
-  const params = useSearchParams();
-  const rawQuery = params.get("q") ?? "";
+export function CollectionGrid({
+  products,
+  query: rawQuery,
+  series: urlSeries,
+  gender: urlGender,
+}: {
+  products: CatalogProduct[];
+  /** Adresten gelen başlangıç seçimleri; sunucuda okunup prop olarak iniyor. */
+  query: string;
+  series: string;
+  gender: string;
+}) {
   const query = rawQuery.toLocaleLowerCase("tr");
-
-  const urlSeries = params.get("seri") ?? "Tümü";
-  const urlGender = params.get("cinsiyet") ?? "Tümü";
 
   const [series, setSeries] = useState(urlSeries);
   const [gender, setGender] = useState(urlGender);
+  const [style, setStyle] = useState("Tümü");
   const [sort, setSort] = useState<Sort>("onerilen");
 
   /* Başlıktaki Erkek/Kadın ve altbilgideki seri bağlantıları aynı rotaya
@@ -57,15 +63,25 @@ export function CollectionGrid({ products }: { products: CatalogProduct[] }) {
     [products],
   );
 
+  /* Stil etiketleri ürün başına birden fazla ("Lüks", "Spor"…); katalogda
+     hangileri geçiyorsa filtre onlardan kuruluyor, elle liste tutulmuyor. */
+  const styleOptions = useMemo(
+    () => ["Tümü", ...new Set(products.flatMap((p) => p.styleTags))].sort(
+      (a, b) => (a === "Tümü" ? -1 : b === "Tümü" ? 1 : a.localeCompare(b, "tr")),
+    ),
+    [products],
+  );
+
   const list = useMemo(() => {
     const filtered = products.filter((p) => {
       if (series !== "Tümü" && p.series !== series) return false;
       if (gender !== "Tümü" && !p.genders.includes(gender as DisplayGender)) {
         return false;
       }
+      if (style !== "Tümü" && !p.styleTags.includes(style)) return false;
       if (query) {
         const haystack =
-          `${p.name} ${p.series} ${p.category} ${p.description}`.toLocaleLowerCase(
+          `${p.name} ${p.series} ${p.category} ${p.styleTags.join(" ")} ${p.description}`.toLocaleLowerCase(
             "tr",
           );
         if (!haystack.includes(query)) return false;
@@ -83,7 +99,7 @@ export function CollectionGrid({ products }: { products: CatalogProduct[] }) {
       default:
         return filtered.sort(compareProducts);
     }
-  }, [products, series, gender, sort, query]);
+  }, [products, series, gender, style, sort, query]);
 
   return (
     <>
@@ -134,6 +150,28 @@ export function CollectionGrid({ products }: { products: CatalogProduct[] }) {
               )}
             >
               {g}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2.5">
+          <span className="mr-1 font-heading text-micro font-semibold uppercase tracking-[0.14em] text-body">
+            Stil
+          </span>
+          {styleOptions.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setStyle(s)}
+              aria-pressed={style === s}
+              className={cn(
+                chip,
+                style === s
+                  ? "border-primary bg-primary-soft text-heading"
+                  : "border-border-strong/40 text-body hover:border-primary hover:text-heading",
+              )}
+            >
+              {s}
             </button>
           ))}
         </div>

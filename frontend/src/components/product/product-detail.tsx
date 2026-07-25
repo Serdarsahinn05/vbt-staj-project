@@ -3,11 +3,14 @@
 import { useState } from "react";
 import { ProductActions } from "@/components/product/product-actions";
 import { ProductGallery } from "@/components/product/product-gallery";
+import { ProductReviews } from "@/components/product/product-reviews";
 import { Badge } from "@/components/ui/badge";
 import { Eyebrow } from "@/components/ui/eyebrow";
+import { Stars } from "@/components/ui/stars";
+import { useReviews } from "@/hooks/use-reviews";
 import { cn } from "@/lib/cn";
 import { formatPrice, formatPriceOrPending } from "@/lib/format";
-import type { CatalogProduct } from "@/lib/catalog";
+import { SPEC_FIELDS, specForVariant, type CatalogProduct } from "@/lib/catalog";
 
 const BENEFITS = [
   "Ücretsiz sigortalı kargo",
@@ -21,6 +24,8 @@ const BENEFITS = [
 export function ProductDetail({ product }: { product: CatalogProduct }) {
   const [variantId, setVariantId] = useState(product.variants[0].id);
   const [imageIndex, setImageIndex] = useState(0);
+  // Aynı sorgu aşağıdaki yorum bölümüyle paylaşılıyor; tek istek atılıyor.
+  const { average, count } = useReviews(product.id);
 
   const variant =
     product.variants.find((v) => v.id === variantId) ?? product.variants[0];
@@ -33,6 +38,20 @@ export function ProductDetail({ product }: { product: CatalogProduct }) {
     .map((v) => v.images[0])
     .filter(Boolean);
 
+  /* Künye ürünün tarifi; boş gelen alan hiç basılmıyor. Çift renkli modellerde
+     bazı alanlar iki rengi birden anlattığı için seçili renge indirgeniyor.
+     Stil etiketleri de aynı listede, onlar da ürünün sabit tarifi. */
+  const specs = SPEC_FIELDS.flatMap(({ key, label }) => {
+    const value = product[key];
+    return value
+      ? [{ label, value: specForVariant(value, variant.colorName) }]
+      : [];
+  });
+  if (product.styleTags.length > 0) {
+    specs.push({ label: "Stil", value: product.styleTags.join(", ") });
+  }
+
+  // Bunlar seçili renge göre değişiyor, künyeden ayrı duruyorlar.
   const details: { label: string; value: string }[] = [
     { label: "Seri", value: `${product.series} Koleksiyonu` },
     { label: "Kategori", value: product.category },
@@ -63,6 +82,19 @@ export function ProductDetail({ product }: { product: CatalogProduct }) {
           <h1 className="mb-3.5 text-balance font-heading text-[clamp(26px,3.4vw,38px)] font-semibold leading-[1.2] text-heading">
             {product.name}
           </h1>
+
+          {count > 0 && (
+            <a
+              href="#degerlendirmeler"
+              className="mb-3 inline-flex items-center gap-2.5 text-small text-body transition-colors hover:text-heading"
+            >
+              <Stars value={average} />
+              <span className="font-heading font-semibold text-heading">
+                {average.toFixed(1)}
+              </span>
+              <span>({count} değerlendirme)</span>
+            </a>
+          )}
 
           <div className="mb-5 flex flex-wrap items-center gap-2.5 text-small text-body">
             <span>{product.genders.join(" / ")}</span>
@@ -124,6 +156,7 @@ export function ProductDetail({ product }: { product: CatalogProduct }) {
           <ProductActions
             variantId={variant.id}
             name={product.name}
+            colorName={multiVariant ? variant.colorName : undefined}
             stock={variant.stock}
           />
 
@@ -146,7 +179,33 @@ export function ProductDetail({ product }: { product: CatalogProduct }) {
         </div>
       </div>
 
-      <section className="mt-20 max-md:mt-12">
+      {specs.length > 0 && (
+        <section className="mt-20 max-md:mt-12">
+          <Eyebrow className="mb-3">Künye</Eyebrow>
+          <h2 className="mb-7 font-heading text-h3 font-semibold text-heading">
+            Teknik Özellikler
+          </h2>
+          {/* Uzun künye iki sütuna bölünüyor; dar ekranda tek sütuna iniyor ki
+              etiket ve değer aynı satırda okunabilsin. */}
+          <dl className="grid grid-cols-2 gap-x-14 max-md:grid-cols-1 max-md:gap-x-0">
+            {specs.map((spec) => (
+              <div
+                key={spec.label}
+                className="flex items-baseline justify-between gap-6 border-b border-border-subtle py-4"
+              >
+                <dt className="shrink-0 font-heading text-micro font-semibold uppercase tracking-[0.14em] text-body">
+                  {spec.label}
+                </dt>
+                <dd className="text-right text-[15px] leading-[1.5] text-heading">
+                  {spec.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      )}
+
+      <section className="mt-16 max-md:mt-10">
         <h2 className="mb-7 font-heading text-h3 font-semibold text-heading">
           Ürün Bilgileri
         </h2>
@@ -166,6 +225,8 @@ export function ProductDetail({ product }: { product: CatalogProduct }) {
           ))}
         </div>
       </section>
+
+      <ProductReviews productId={product.id} productName={product.name} />
     </>
   );
 }

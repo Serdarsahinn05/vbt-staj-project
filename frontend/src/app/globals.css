@@ -132,14 +132,16 @@
 
 /* Mini-demo'daki hareket dili (zPageIn / zRise / zZoom).
    Bounce/spin yok; hepsi ease-standard, kısa ve ölçülü. */
+/* Açılışta yalnızca yumuşak bir görünme var; blur BİLEREK yok.
+   `filter` uygulanan eleman, içindeki `position: fixed` çocuklar için yeni
+   bir containing block yaratıyor: body'de filtre olduğu sürece başlık ve
+   bildirimler ekrana değil sayfaya göre yerleşiyor. */
 @keyframes zPageIn {
   from {
     opacity: 0;
-    filter: blur(8px);
   }
   to {
     opacity: 1;
-    filter: blur(0);
   }
 }
 
@@ -163,12 +165,40 @@
   }
 }
 
+/* `forwards`, `both` değil: `backwards` ile animasyon herhangi bir sebeple
+   başlamazsa sayfa ilk karede (blur'lu, saydam) donup kalıyor. */
 body {
-  animation: zPageIn 0.9s var(--ease-standard) both;
+  animation: zPageIn 0.9s var(--ease-standard) forwards;
 }
 
 .z-rise {
   animation: zRise 0.7s var(--ease-standard) both;
+}
+
+/* Bildirim sağdan girip sağdan çıkıyor — ekranın kenarından gelip oraya
+   dönmesi, sepet simgesinin de bulunduğu yönü işaret ediyor.
+   Girişte dolgu kipi yok: animasyon çalışmazsa kart normal halinde görünür,
+   görünürlüğü animasyona bağlı kalmıyor. */
+@keyframes zToastIn {
+  from {
+    opacity: 0;
+    transform: translateX(28px) scale(0.96);
+  }
+}
+
+@keyframes zToastOut {
+  to {
+    opacity: 0;
+    transform: translateX(28px) scale(0.96);
+  }
+}
+
+.z-toast-in {
+  animation: zToastIn 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.z-toast-out {
+  animation: zToastOut 0.26s var(--ease-standard) forwards;
 }
 
 .z-zoom {
