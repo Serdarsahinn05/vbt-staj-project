@@ -3,7 +3,14 @@ import { cn } from "@/lib/cn";
 /* Puan göstergesi. Yarım yıldız yok: ortalama en yakın yarıma değil, dolu
    yıldız sayısına yuvarlanıyor ve sayısal değer zaten yanında yazıyor. */
 
-function Star({ filled, size }: { filled: boolean; size: number }) {
+/** Tek yıldız. Puan gösteriminde ve yorum formundaki seçicide ortak. */
+export function Star({
+  filled,
+  size = 15,
+}: {
+  filled: boolean;
+  size?: number;
+}) {
   return (
     <svg
       width={size}

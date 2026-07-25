@@ -8,7 +8,7 @@ import { ProductCard } from "@/components/ui/product-card";
 import { ProductGridSkeleton } from "@/components/ui/skeleton";
 import { useCatalog } from "@/hooks/use-catalog";
 import { useFavorites } from "@/hooks/use-favorites";
-import { useCartStore } from "@/stores/cart-store";
+import { useCartActions } from "@/hooks/use-cart";
 import { toast } from "@/stores/toast-store";
 
 /* Favoriler renk bazlı: aynı modelin iki rengi iki ayrı favoridir.
@@ -16,7 +16,7 @@ import { toast } from "@/stores/toast-store";
 export function FavoritesView() {
   const { ids, signedIn, clear } = useFavorites();
   const { variantIndex, isPending } = useCatalog();
-  const addToCart = useCartStore((s) => s.add);
+  const { add: addToCart } = useCartActions();
 
   if (isPending) return <ProductGridSkeleton count={4} />;
 

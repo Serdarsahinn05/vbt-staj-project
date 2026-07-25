@@ -4,7 +4,7 @@ import { useState } from "react";
 import { HeartToggle } from "@/components/ui/heart";
 import { useFavorites } from "@/hooks/use-favorites";
 import { cn } from "@/lib/cn";
-import { useCartStore } from "@/stores/cart-store";
+import { useCartActions } from "@/hooks/use-cart";
 import { toast } from "@/stores/toast-store";
 
 /* Detay sayfasının eylem butonları: Sepete Ekle (gold) + Favorilere Ekle.
@@ -20,7 +20,7 @@ export function ProductActions({
   colorName?: string;
   stock: number;
 }) {
-  const add = useCartStore((s) => s.add);
+  const { add } = useCartActions();
   const { isFavorite, toggle } = useFavorites();
   const [added, setAdded] = useState(false);
 

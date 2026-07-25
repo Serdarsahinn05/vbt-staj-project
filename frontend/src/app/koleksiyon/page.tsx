@@ -9,9 +9,9 @@ export const metadata: Metadata = {
   description: "Zemrek saat koleksiyonunu keşfedin.",
 };
 
-/* Filtre seçimleri adresten okunuyor ama `useSearchParams` yerine sunucudan
-   prop olarak geçiyor: o hook bir Suspense sınırı gerektiriyor ve sınırın
-   içindeki ağaç hydrate olmadığı için filtreler tıklanamaz kalıyordu. */
+/* Filtre seçimleri adresten sunucuda okunup prop olarak iniyor. `useSearchParams`
+   bir Suspense sınırı gerektiriyor; sayfa zaten dinamik olduğu için o sınıra
+   gerek kalmıyor. */
 type Params = {
   searchParams: Promise<{ q?: string; seri?: string; cinsiyet?: string }>;
 };

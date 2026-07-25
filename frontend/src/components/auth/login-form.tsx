@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Notice } from "@/components/ui/notice";
+import { CART_KEY, mergeGuestCart } from "@/hooks/use-cart";
 import { FAVORITES_KEY, mergeGuestFavorites } from "@/hooks/use-favorites";
 import { ApiError, login } from "@/lib/api";
 
@@ -35,7 +36,9 @@ export function LoginForm() {
     try {
       await login(email.trim(), password);
       await mergeGuestFavorites();
+      await mergeGuestCart();
       await queryClient.invalidateQueries({ queryKey: FAVORITES_KEY });
+      await queryClient.invalidateQueries({ queryKey: CART_KEY });
       router.push("/hesap");
     } catch (err) {
       setFailure(

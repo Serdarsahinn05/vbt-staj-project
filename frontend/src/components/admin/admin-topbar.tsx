@@ -1,12 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Logo } from "@/components/ui/logo";
 import { logout } from "@/lib/api";
+import { cn } from "@/lib/cn";
 import { useAuthStore } from "@/stores/auth-store";
+
+const SECTIONS = [
+  { label: "Fiyat & Stok", href: "/admin" },
+  { label: "Ürünler", href: "/admin/urunler" },
+];
 
 export function AdminTopbar() {
   const user = useAuthStore((s) => s.user);
+  const pathname = usePathname();
 
   return (
     <header className="sticky top-0 z-30 border-b border-white/10 bg-dark">
@@ -17,6 +25,30 @@ export function AdminTopbar() {
             Yönetim
           </span>
         </Link>
+
+        <nav aria-label="Panel bölümleri" className="flex items-center gap-1">
+          {SECTIONS.map((section) => {
+            const active =
+              section.href === "/admin"
+                ? pathname === "/admin"
+                : pathname.startsWith(section.href);
+            return (
+              <Link
+                key={section.href}
+                href={section.href}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "rounded-sm px-3 py-1.5 font-heading text-[13px] font-medium transition-colors duration-[var(--duration-fast)] ease-standard",
+                  active
+                    ? "bg-white/10 text-accent"
+                    : "text-on-dark-muted hover:text-on-dark",
+                )}
+              >
+                {section.label}
+              </Link>
+            );
+          })}
+        </nav>
 
         <div className="ml-auto flex items-center gap-5 max-md:ml-0 max-md:w-full max-md:justify-between">
           {user && (

@@ -8,6 +8,7 @@ import { Footer } from "@/components/layout/footer";
 import { RouteProgress } from "@/components/layout/route-progress";
 import { StorefrontOnly } from "@/components/layout/storefront-only";
 import { ToastHost } from "@/components/layout/toast-host";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
@@ -21,13 +22,27 @@ const poppins = Poppins({
   weight: ["400", "500", "600"],
 });
 
+const title = "Zemrek — Zamanın Ötesinde Zarafet";
+
 export const metadata: Metadata = {
-  title: {
-    default: "Zemrek — Zamanın Ötesinde Zarafet",
-    template: "%s | Zemrek",
+  /* Paylaşım önizlemeleri ve sitemap mutlak adres istiyor; bu olmadan
+     göreli görsel yolları sosyal medyada çözülmüyor. */
+  metadataBase: new URL(SITE_URL),
+  title: { default: title, template: `%s | ${SITE_NAME}` },
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    type: "website",
+    locale: "tr_TR",
+    siteName: SITE_NAME,
+    title,
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
   },
-  description:
-    "El işçiliğiyle üretilen premium saatler. Zemrek koleksiyonlarını keşfedin.",
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description: SITE_DESCRIPTION,
+  },
 };
 
 export default function RootLayout({
@@ -38,16 +53,29 @@ export default function RootLayout({
   return (
     <html
       lang="tr"
+      /* `data-scroll-behavior` olmadan Next, rota geçişinde sayfayı başa
+         alırken CSS'in yumuşak kaydırmasıyla çakışıyor ve geçiş takılıyor. */
+      data-scroll-behavior="smooth"
       className={`${montserrat.variable} ${poppins.variable} h-full scroll-smooth scroll-pt-20 antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        {/* Klavyeyle gezinende ilk durak: menüyü atlayıp içeriğe geçirir.
+            Odaklanmadıkça görünmüyor. */}
+        <a
+          href="#icerik"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-surface focus:px-5 focus:py-3 focus:font-heading focus:text-small focus:font-semibold focus:text-heading focus:shadow-elevated focus:outline-2 focus:outline-offset-2 focus:outline-focus-ring"
+        >
+          İçeriğe geç
+        </a>
         <Providers>
           <BootLoader />
           <RouteProgress />
           <StorefrontOnly>
             <Header />
           </StorefrontOnly>
-          <main className="flex-1">{children}</main>
+          <main id="icerik" className="flex-1">
+            {children}
+          </main>
           <StorefrontOnly>
             <Footer />
           </StorefrontOnly>

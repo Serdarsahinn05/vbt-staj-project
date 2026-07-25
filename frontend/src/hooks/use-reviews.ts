@@ -25,7 +25,7 @@ export function useReviews(productId: number) {
     queryClient.invalidateQueries({ queryKey: reviewsKey(productId) });
 
   const create = useMutation({
-    mutationFn: ({ rating, comment }: { rating: number; comment: string }) =>
+    mutationFn: ({ rating, comment }: { rating: number; comment?: string }) =>
       addReview(productId, rating, comment),
     onSuccess: invalidate,
   });

@@ -61,9 +61,8 @@ export function Header() {
   const pathname = usePathname();
   const hydrated = useHydrated();
 
-  /* Rozetler katalogda karşılığı bulunan kayıtları sayıyor. Ham listeyi saymak,
-     silinmiş bir varyant sepette ya da favorilerde kalmışsa sayfa boşken
-     rozette rakam gösteriyordu. */
+  /* Rozetler katalogda karşılığı bulunan kayıtları sayıyor: silinmiş bir varyant
+     sepette kalmışsa listede görünmüyor, sayacın da onu görmemesi gerekiyor. */
   const { count } = useCart();
   const { variantIndex } = useCatalog();
   const { ids: favIds } = useFavorites();
@@ -73,16 +72,44 @@ export function Header() {
   // Ana sayfada koyu hero var → şeffaf başlar. Diğer sayfalarda baştan opak.
   const solid = scrolled || menuOpen || pathname !== "/";
 
+  /* Kaydırma olayı sık geliyor; okuma bir sonraki çizim karesine erteleniyor
+     ki her olayda düzen okuması yapılmasın. */
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
+    let frame = 0;
+    const onScroll = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        setScrolled(window.scrollY > 24);
+      });
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
   }, []);
 
   useEffect(() => {
     if (searchOpen) inputRef.current?.focus();
   }, [searchOpen]);
+
+  /* Adres çubuğunda zaten "#hikaye" varken aynı bağlantıya basmak hiçbir şey
+     yapmıyor: tarayıcı hedefte olduğunu varsayıyor. Aynı sayfadaysak kaydırmayı
+     kendimiz tetikliyoruz — kaydırma yine tarayıcının kendi yumuşatmasıyla. */
+  function goToSection(e: React.MouseEvent, href: string) {
+    const [path, hash] = href.split("#");
+    if (!hash || (path || "/") !== pathname) return;
+
+    const target = document.getElementById(hash);
+    if (!target) return;
+
+    e.preventDefault();
+    setMenuOpen(false);
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+    history.replaceState(null, "", href);
+  }
 
   function submitSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -120,6 +147,7 @@ export function Header() {
             <Link
               key={n.label}
               href={n.href}
+              onClick={(e) => goToSection(e, n.href)}
               className="whitespace-nowrap font-heading text-[13px] font-medium tracking-[0.06em] text-on-dark/85 transition-colors duration-[var(--duration-fast)] ease-standard hover:text-accent"
             >
               {n.label}
@@ -241,7 +269,10 @@ export function Header() {
             <Link
               key={n.label}
               href={n.href}
-              onClick={() => setMenuOpen(false)}
+              onClick={(e) => {
+                setMenuOpen(false);
+                goToSection(e, n.href);
+              }}
               className="py-2.5 font-heading text-[13px] font-medium tracking-[0.06em] text-on-dark/85 transition-colors hover:text-accent"
             >
               {n.label}
