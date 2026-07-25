@@ -1,10 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/screens/landing_screen.dart';
+import 'package:mobile/services/auth_service.dart';
+import 'package:mobile/services/cart_service.dart';
+import 'package:mobile/services/favorites_service.dart';
 
-class AccountScreen extends StatelessWidget {
+class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
 
+  @override
+  State<AccountScreen> createState() => _AccountScreenState();
+}
+
+class _AccountScreenState extends State<AccountScreen> {
   static const _gold = Color(0xFFC4A470);
+
+  String _name = 'Zemrek Kullanıcı';
+  String _email = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final name = await AuthService.instance.getName();
+    final email = await AuthService.instance.getEmail();
+    if (!mounted) return;
+    setState(() {
+      if (name != null && name.isNotEmpty) _name = name;
+      _email = email ?? '';
+    });
+  }
+
+  Future<void> _logout() async {
+    await AuthService.instance.logout();
+    CartService.instance.clearLocal();
+    FavoriteService.instance.clearLocal();
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LandingScreen()),
+      (route) => false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,25 +72,28 @@ class AccountScreen extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 32,
-                  backgroundColor: _gold,
+                  backgroundColor: _gold.withValues(alpha: 0.25),
                   child: const Icon(Icons.person, color: _gold, size: 36),
                 ),
                 const SizedBox(width: 16),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Zemrek Kullanıcı',
-                        style: TextStyle(
+                        _name,
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
-                        'kullanici@zemrek.com',
-                        style: TextStyle(color: Colors.black54, fontSize: 13),
+                        _email.isEmpty ? 'Giriş yapılmadı' : _email,
+                        style: const TextStyle(
+                          color: Colors.black54,
+                          fontSize: 13,
+                        ),
                       ),
                     ],
                   ),
@@ -73,31 +115,25 @@ class AccountScreen extends StatelessWidget {
             icon: Icons.location_on_outlined,
             title: 'Adreslerim',
             onTap: () {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('Adresler yakında')));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Adresler yakında')),
+              );
             },
           ),
           _menuTile(
             icon: Icons.settings_outlined,
             title: 'Ayarlar',
             onTap: () {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('Ayarlar yakında')));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Ayarlar yakında')),
+              );
             },
           ),
           const SizedBox(height: 12),
           SizedBox(
             height: 52,
             child: OutlinedButton.icon(
-              onPressed: () {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LandingScreen()),
-                  (route) => false,
-                );
-              },
+              onPressed: _logout,
               icon: const Icon(Icons.logout, color: Colors.redAccent),
               label: const Text(
                 'Çıkış Yap',

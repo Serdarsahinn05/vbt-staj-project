@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/screens/main_shell.dart';
+import 'package:mobile/services/auth_service.dart';
+import 'package:mobile/services/cart_service.dart';
+import 'package:mobile/services/favorites_service.dart';
 import 'package:mobile/widgets/auth_text_field.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -11,6 +14,85 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   bool _isLogin = true;
+  bool _loading = false;
+
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final name = _nameController.text.trim();
+
+    if (email.isEmpty) {
+      _showError('E-posta girmek zorunludur');
+      return;
+    }
+    if (!_isValidEmail(email)) {
+      _showError('Geçerli bir e-posta adresi giriniz');
+      return;
+    }
+    if (password.isEmpty) {
+      _showError('Şifre girmek zorunludur');
+      return;
+    }
+    if (!_isLogin && name.isEmpty) {
+      _showError('Ad soyad girmek zorunludur');
+      return;
+    }
+
+    setState(() => _loading = true);
+    try {
+      if (_isLogin) {
+        await AuthService.instance.login(email: email, password: password);
+      } else {
+        await AuthService.instance.register(
+          name: name,
+          email: email,
+          password: password,
+        );
+      }
+
+      // Giriş sonrası sepet + favorileri çek
+      try {
+        await Future.wait([
+          CartService.instance.refresh(),
+          FavoriteService.instance.refresh(),
+        ]);
+      } catch (_) {}
+
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const MainShell()),
+        (route) => false,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      _showError(e.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  bool _isValidEmail(String email) {
+    return RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email);
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +104,6 @@ class _AuthScreenState extends State<AuthScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Üstte sabit geri ok
               Align(
                 alignment: Alignment.centerLeft,
                 child: IconButton(
@@ -34,7 +115,6 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                 ),
               ),
-
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -67,7 +147,9 @@ class _AuthScreenState extends State<AuthScreen> {
                             children: [
                               Expanded(
                                 child: GestureDetector(
-                                  onTap: () => setState(() => _isLogin = true),
+                                  onTap: _loading
+                                      ? null
+                                      : () => setState(() => _isLogin = true),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 12,
@@ -98,7 +180,9 @@ class _AuthScreenState extends State<AuthScreen> {
                               ),
                               Expanded(
                                 child: GestureDetector(
-                                  onTap: () => setState(() => _isLogin = false),
+                                  onTap: _loading
+                                      ? null
+                                      : () => setState(() => _isLogin = false),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 12,
@@ -132,35 +216,31 @@ class _AuthScreenState extends State<AuthScreen> {
                           const SizedBox(height: 30),
                           if (!_isLogin) ...[
                             AuthTextField(
-                              hint: "AD SOYAD",
+                              hint: 'AD SOYAD',
                               icon: Icons.person_outline,
+                              controller: _nameController,
                             ),
+                            const SizedBox(height: 14),
                           ],
-                          SizedBox(height: 14),
                           AuthTextField(
-                            hint: "E-MAİL",
+                            hint: 'E-MAİL',
                             icon: Icons.mail_outline,
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
                           ),
                           const SizedBox(height: 14),
                           AuthTextField(
-                            hint: "ŞİFRE",
+                            hint: 'ŞİFRE',
                             icon: Icons.lock_outline,
                             obscureText: true,
+                            controller: _passwordController,
                           ),
                           const SizedBox(height: 20),
                           SizedBox(
                             width: double.infinity,
                             height: 52,
                             child: ElevatedButton(
-                              onPressed: () {
-                                Navigator.pushAndRemoveUntil(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const MainShell(),
-                                  ),
-                                  (route) => false, // geride sayfa bırakma
-                                );
-                              },
+                              onPressed: _loading ? null : _submit,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color.fromARGB(
                                   255,
@@ -169,18 +249,33 @@ class _AuthScreenState extends State<AuthScreen> {
                                   51,
                                 ),
                                 foregroundColor: Colors.black,
+                                disabledBackgroundColor: Colors.grey.shade700,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                              child: Text(
-                                _isLogin ? 'GİRİŞ YAP' : 'KAYIT OL',
-                                style: TextStyle(
-                                  color: Color.fromARGB(255, 245, 239, 239),
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 16,
-                                ),
-                              ),
+                              child: _loading
+                                  ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : Text(
+                                      _isLogin ? 'GİRİŞ YAP' : 'KAYIT OL',
+                                      style: const TextStyle(
+                                        color: Color.fromARGB(
+                                          255,
+                                          245,
+                                          239,
+                                          239,
+                                        ),
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 16,
+                                      ),
+                                    ),
                             ),
                           ),
                         ],

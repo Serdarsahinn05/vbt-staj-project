@@ -18,8 +18,52 @@ class _HomeScreenState extends State<HomeScreen> {
   static const _gold = Color(0xFFC4A470);
 
   final _productService = ProductServices();
-  late final List<Map<String, dynamic>> _products = _productService
-      .getProducts();
+  List<Map<String, dynamic>> _products = [];
+  List<String> _filterOptions = const ['TÜMÜ'];
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProducts();
+  }
+
+  Future<void> _loadProducts() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final products = await _productService.getProducts();
+      List<String> categories;
+      try {
+        categories = await _productService.getCategories();
+      } catch (_) {
+        // API yoksa ürün kategorilerinden üret
+        categories = products
+            .map((p) => (p['category'] as String? ?? '').trim())
+            .where((e) => e.isNotEmpty)
+            .toSet()
+            .toList();
+      }
+      if (!mounted) return;
+      setState(() {
+        _products = products;
+        _filterOptions = _productService.buildFilterOptions(categories);
+        if (!_filterOptions.contains(_selectedStyle)) {
+          _selectedStyle = 'TÜMÜ';
+        }
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
 
   List<Map<String, dynamic>> get _filteredProducts {
     return _products.where((p) {
@@ -27,11 +71,10 @@ class _HomeScreenState extends State<HomeScreen> {
           _selectedGender == 'TÜMÜ' || p['gender'] == _selectedGender;
 
       if (!genderOk) return false;
-      if (_selectedStyle == 'TÜMÜ') return true;
-
-      final tags = (p['styleTags'] as List<dynamic>? ?? []);
-      final category = p['category'] as String?;
-      return category == _selectedStyle || tags.contains(_selectedStyle);
+      return _productService.matchesCategoryFilter(
+        p['category'] as String?,
+        _selectedStyle,
+      );
     }).toList();
   }
 
@@ -39,58 +82,71 @@ class _HomeScreenState extends State<HomeScreen> {
     final result = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: Colors.white,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
         return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Stil / Kategori',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Spor, klasik, lüks gibi stillere göre filtrele',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-                ),
-                const SizedBox(height: 16),
-                ...ProductServices.styleOptions.map((style) {
-                  final selected = _selectedStyle == style;
-                  return ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(
-                      style,
-                      style: TextStyle(
-                        fontWeight: selected
-                            ? FontWeight.bold
-                            : FontWeight.w500,
-                        color: selected ? _gold : Colors.black87,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(context).height * 0.7,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(4),
                       ),
                     ),
-                    trailing: selected
-                        ? const Icon(Icons.check, color: _gold)
-                        : null,
-                    onTap: () => Navigator.pop(context, style),
-                  );
-                }),
-              ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Kategori',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Akıllı, Klasik, Spor, Lüks, Dress, Casual',
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                  ),
+                  const SizedBox(height: 16),
+                  Flexible(
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: _filterOptions.length,
+                      itemBuilder: (context, index) {
+                        final style = _filterOptions[index];
+                        final selected = _selectedStyle == style;
+                        return ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(
+                            style,
+                            style: TextStyle(
+                              fontWeight: selected
+                                  ? FontWeight.bold
+                                  : FontWeight.w500,
+                              color: selected ? _gold : Colors.black87,
+                            ),
+                          ),
+                          trailing: selected
+                              ? const Icon(Icons.check, color: _gold)
+                              : null,
+                          onTap: () => Navigator.pop(context, style),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -219,26 +275,49 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
             const SizedBox(height: 12),
             Expanded(
-              child: filtered.isEmpty
-                  ? Center(
-                      child: Text(
-                        'Bu filtreye uygun ürün yok',
-                        style: TextStyle(color: Colors.grey.shade600),
-                      ),
-                    )
-                  : GridView.builder(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            mainAxisSpacing: 12,
-                            crossAxisSpacing: 12,
-                            childAspectRatio: 0.65,
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _error != null
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Ürünler yüklenemedi.\nBackend çalışıyor mu?\n$_error',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: Colors.grey.shade700),
+                                ),
+                                const SizedBox(height: 16),
+                                ElevatedButton(
+                                  onPressed: _loadProducts,
+                                  child: const Text('Tekrar dene'),
+                                ),
+                              ],
+                            ),
                           ),
-                      itemCount: filtered.length,
-                      itemBuilder: (context, index) {
-                        return _buildProductCard(filtered[index]);
-                      },
-                    ),
+                        )
+                      : filtered.isEmpty
+                          ? Center(
+                              child: Text(
+                                'Bu filtreye uygun ürün yok',
+                                style: TextStyle(color: Colors.grey.shade600),
+                              ),
+                            )
+                          : GridView.builder(
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                mainAxisSpacing: 12,
+                                crossAxisSpacing: 12,
+                                childAspectRatio: 0.65,
+                              ),
+                              itemCount: filtered.length,
+                              itemBuilder: (context, index) {
+                                return _buildProductCard(filtered[index]);
+                              },
+                            ),
             ),
           ],
         ),
@@ -319,13 +398,25 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: ListenableBuilder(
                         listenable: FavoriteService.instance,
                         builder: (context, _) {
-                          final id = product['id'] as int;
-                          final selected = FavoriteService.instance.isFavorite(
-                            id,
-                          );
+                          final selected = FavoriteService.instance
+                              .isFavoriteProduct(product);
                           return IconButton(
-                            onPressed: () {
-                              FavoriteService.instance.toggle(id);
+                            onPressed: () async {
+                              try {
+                                await FavoriteService.instance
+                                    .toggleProduct(product);
+                              } catch (e) {
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      e
+                                          .toString()
+                                          .replaceFirst('Exception: ', ''),
+                                    ),
+                                  ),
+                                );
+                              }
                             },
                             icon: Icon(
                               selected ? Icons.favorite : Icons.favorite_border,

@@ -6,15 +6,22 @@ class AuthTextField extends StatelessWidget {
     required this.hint,
     required this.icon,
     this.obscureText = false,
+    this.controller,
+    this.keyboardType,
   });
 
   final String hint;
   final IconData icon;
   final bool obscureText;
+  final TextEditingController? controller;
+  final TextInputType? keyboardType;
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
       style: const TextStyle(color: Colors.white),
       cursorColor: const Color.fromARGB(255, 214, 170, 103),
       decoration: InputDecoration(
