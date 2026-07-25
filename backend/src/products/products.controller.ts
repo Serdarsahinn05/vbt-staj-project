@@ -27,6 +27,10 @@ export class ProductsController {
     }
 
     @Post()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('ADMIN')
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Yeni ürün oluştur (sadece ADMIN)' })
     createProduct(@Body() body: CreateProductDto) {
     return this.productsService.create(body);
     }
@@ -44,11 +48,19 @@ export class ProductsController {
     }
 
     @Patch(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('ADMIN')
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Ürünü düzenle (sadece ADMIN)' })
     updateProduct(@Body() body: UpdateProductDto, @Param('id', ParseIntPipe) id: number) {
     return this.productsService.update(id, body);
     }
 
     @Delete(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('ADMIN')
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Ürünü sil (sadece ADMIN)' })
     deleteProduct(@Param('id', ParseIntPipe) id: number) {
         return this.productsService.delete(id);
     }

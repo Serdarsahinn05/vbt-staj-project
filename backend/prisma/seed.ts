@@ -12,6 +12,95 @@ const cloud = (path: string): string => `${CLOUDINARY_BASE}${path}`;
 const imgs = (slug: string): string[] =>
   Array.from({ length: 8 }, (_, i) => cloud(`${slug}-${i + 1}`));
 
+// ---------- Sahte değerlendirme (review) seed'i için yardımcılar ----------
+function pick<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function randomDate(start: Date, end: Date): Date {
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+}
+
+function toAscii(s: string): string {
+  return s
+    .replace(/İ/g, 'I')
+    .replace(/ı/g, 'i')
+    .replace(/Ş/g, 'S')
+    .replace(/ş/g, 's')
+    .replace(/Ğ/g, 'G')
+    .replace(/ğ/g, 'g')
+    .replace(/Ü/g, 'U')
+    .replace(/ü/g, 'u')
+    .replace(/Ö/g, 'O')
+    .replace(/ö/g, 'o')
+    .replace(/Ç/g, 'C')
+    .replace(/ç/g, 'c')
+    .toLowerCase();
+}
+
+
+function ratingsForTarget(n: number, targetAvg: number): number[] {
+  const totalTarget = Math.round(targetAvg * n);
+  const ratings = new Array(n).fill(4);
+  const diff = totalTarget - 4 * n;
+  if (diff > 0) {
+    for (let i = 0; i < Math.min(diff, n); i++) ratings[i] = 5;
+  } else if (diff < 0) {
+    for (let i = 0; i < Math.min(-diff, n); i++) ratings[i] = 3;
+  }
+  return shuffle(ratings);
+}
+
+const FIRST_NAMES = [
+  'Ahmet', 'Mehmet', 'Ayşe', 'Fatma', 'Mustafa', 'Elif', 'Emre', 'Zeynep', 'Can', 'Deniz',
+  'Burak', 'Ece', 'Kerem', 'Selin', 'Onur', 'Gizem', 'Umut', 'Merve', 'Berk', 'Aylin',
+  'Tolga', 'Nazlı', 'Barış', 'İrem', 'Cem', 'Buse', 'Serkan', 'Pınar', 'Kaan', 'Ceren',
+  'Furkan', 'Yasemin', 'Emir', 'Sude', 'Arda', 'Melis', 'Batuhan', 'Su', 'Yusuf', 'Beren',
+];
+const LAST_NAMES = [
+  'Yılmaz', 'Kaya', 'Demir', 'Şahin', 'Çelik', 'Yıldız', 'Yıldırım', 'Öztürk', 'Aydın', 'Arslan',
+  'Doğan', 'Kılıç', 'Aslan', 'Çetin', 'Kara', 'Koç', 'Kurt', 'Özdemir', 'Şimşek', 'Erdoğan',
+  'Türk', 'Aksoy', 'Güneş', 'Polat', 'Bulut', 'Aktaş', 'Karaca', 'Acar', 'Ünal', 'Tekin',
+];
+
+const REVIEW_COMMENTS = [
+  'Kutudan çıkar çıkmaz kalitesini hissettim, çok memnun kaldım.',
+  'Zarif ve şık, beklediğimden bile güzel geldi.',
+  'Kayış çok rahat, günlük kullanımda hiç sorun yaşamadım.',
+  'Kargo hızlıydı, paketleme özenliydi.',
+  'Fiyatına göre kalitesi gerçekten çok iyi.',
+  'Ailem ve arkadaşlarımdan çok beğeni aldım.',
+  'Mekanizması sessiz ve düzgün çalışıyor.',
+  'Hediye olarak aldım, çok beğenildi.',
+  'Kadranın okunabilirliği harika.',
+  'Bir kusur bulamadım, tam istediğim gibi.',
+  'Biraz beklediğimden büyük geldi ama yine de memnunum.',
+  'Renk fotoğraftakiyle birebir aynıydı, çok şık duruyor.',
+];
+
+
+const REVIEW_PLAN: Record<string, { count: number; avg: number; onlyCurrentYear?: boolean }> = {
+  vesper: { count: 52, avg: 4.8 },
+  aurelius: { count: 22, avg: 4.8, onlyCurrentYear: true },
+  orion: { count: 45, avg: 4.7 },
+  solace: { count: 38, avg: 4.7 },
+  lunaris: { count: 20, avg: 4.9, onlyCurrentYear: true },
+  nova: { count: 33, avg: 4.7 },
+  drift: { count: 60, avg: 4.6 },
+  valor: { count: 41, avg: 4.7 },
+  void: { count: 27, avg: 4.7 },
+  iris: { count: 24, avg: 4.625 },
+};
+
 const CATEGORIES = [
   'Akıllı Saat',
   'Klasik Saat',
@@ -282,8 +371,81 @@ const PRODUCTS: SeedProduct[] = [
   },
 ];
 
+
+async function seedFakeReviews() {
+  const existingReviews = await prisma.review.count();
+  if (existingReviews > 0) {
+    console.log(
+      `Değerlendirme tablosu dolu (${existingReviews} kayıt) — sahte değerlendirme seed'i atlandı.`,
+    );
+    return;
+  }
+
+  const products = await prisma.product.findMany({ select: { id: true, slug: true } });
+  if (products.length === 0) return;
+
+
+  const USER_COUNT = 260;
+  const fakeUserInputs = Array.from({ length: USER_COUNT }, (_, i) => {
+    const first = pick(FIRST_NAMES);
+    const last = pick(LAST_NAMES);
+    return {
+      email: `${toAscii(first)}.${toAscii(last)}${i}@ornekmail.com`,
+      name: `${first} ${last}`,
+    };
+  });
+  const fakePasswordHash = await bcrypt.hash('FakeKullanici123!', 10);
+  await prisma.user.createMany({
+    data: fakeUserInputs.map((u) => ({ ...u, password: fakePasswordHash })),
+    skipDuplicates: true,
+  });
+  const fakeUsers = await prisma.user.findMany({
+    where: { email: { in: fakeUserInputs.map((u) => u.email) } },
+    select: { id: true },
+  });
+  const fakeUserIds = fakeUsers.map((u) => u.id);
+
+
+  const now = new Date();
+  const y2020 = new Date('2020-01-01T00:00:00Z');
+  const y2026 = new Date('2026-01-01T00:00:00Z');
+
+  const allReviews: {
+    userId: number;
+    productId: number;
+    rating: number;
+    comment: string | null;
+    createdAt: Date;
+  }[] = [];
+
+  for (const product of products) {
+    const plan = REVIEW_PLAN[product.slug];
+    if (!plan) continue;
+
+    const reviewerIds = shuffle(fakeUserIds).slice(0, plan.count);
+    const ratings = ratingsForTarget(plan.count, plan.avg);
+    const dateStart = plan.onlyCurrentYear ? y2026 : y2020;
+
+    reviewerIds.forEach((userId, idx) => {
+      const hasComment = Math.random() < 0.1;
+      allReviews.push({
+        userId,
+        productId: product.id,
+        rating: ratings[idx],
+        comment: hasComment ? pick(REVIEW_COMMENTS) : null,
+        createdAt: randomDate(dateStart, now),
+      });
+    });
+  }
+
+  await prisma.review.createMany({ data: allReviews, skipDuplicates: true });
+  console.log(
+    `Sahte veri eklendi: ${fakeUserIds.length} kullanıcı, ${allReviews.length} değerlendirme.`,
+  );
+}
+
 async function main() {
-  // 0) Admin kullanıcı (her zaman, upsert) — panelin girişi için
+
   const adminEmail = 'admin@zemrek.com';
   const adminPasswordHash = await bcrypt.hash('Admin123!', 10);
   await prisma.user.upsert({
@@ -297,17 +459,15 @@ async function main() {
     },
   });
 
-  // 1) Kategoriler (her zaman, idempotent)
+
   await prisma.category.createMany({
     data: CATEGORIES.map((name) => ({ name })),
     skipDuplicates: true,
   });
 
-  // 2) Ürünler — SADECE tablo boşsa kur. Böylece docker restart/up admin'in
-  //    girdiği fiyat/stok/indirim değerlerini silmez (idempotent seed).
   const existingProducts = await prisma.product.count();
   if (existingProducts === 0) {
-    // Kanonik olmayan (ör. eski gender bazlı) kategorileri temizle
+
     await prisma.category.deleteMany({ where: { name: { notIn: CATEGORIES } } });
 
     const allCategories = await prisma.category.findMany();
@@ -323,7 +483,7 @@ async function main() {
           name: p.name,
           slug: p.slug,
           description: p.description,
-          price: p.price, // model bazlı fiyat
+          price: p.price, 
           genders: p.genders,
           series: p.series,
           styleTags: p.styleTags,
@@ -338,7 +498,6 @@ async function main() {
           dial: p.dial,
           categoryId: categoryId(p.category),
           variants: {
-            // Fiyat tüm renklerde aynı (model bazlı); stok/indirim renk bazlı
             create: p.variants.map((v) => ({
               colorName: v.colorName,
               colorHex: v.colorHex,
@@ -356,6 +515,9 @@ async function main() {
       `Ürün tablosu dolu (${existingProducts} ürün) — ürün seed'i atlandı, mevcut fiyat/stok/indirim korundu.`,
     );
   }
+
+  // 3) Sahte kullanıcılar + değerlendirmeler (yalnızca tablo boşsa)
+  await seedFakeReviews();
 
   const categoryCount = await prisma.category.count();
   const productCount = await prisma.product.count();
