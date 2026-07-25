@@ -22,24 +22,22 @@ export class ProductsService {
     ];
     }
     if (query.categoryId) where.categoryId = query.categoryId;
-    if (query.gender) where.gender = query.gender;
+    // gender çoklu: ?gender=ERKEK → genders içinde ERKEK geçen ürünler
+    if (query.gender) where.genders = { has: query.gender };
+    if (query.series) where.series = query.series;
     if (query.minPrice !== undefined || query.maxPrice !== undefined) {
-
-    where.variants = {
-        some: {
-            price: {
-                ...(query.minPrice !== undefined ? { gte: query.minPrice } : {}),
-                ...(query.maxPrice !== undefined ? { lte: query.maxPrice } : {}),
-            },
-        },
+    where.price = {
+        ...(query.minPrice !== undefined ? { gte: query.minPrice } : {}),
+        ...(query.maxPrice !== undefined ? { lte: query.maxPrice } : {}),
     };
     }
 
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
 
-
-    const orderBy = query.sortBy ? { [query.sortBy]: 'asc' as const } : undefined;
+    const sortBy = query.sortBy ?? 'price';
+    const sortOrder = query.sortOrder ?? 'asc';
+    const orderBy = { [sortBy]: sortOrder };
 
 
     const [data, total] = await Promise.all([
@@ -86,6 +84,7 @@ export class ProductsService {
 
               ...(v.price !== undefined ? { price: v.price } : {}),
               ...(v.stock !== undefined ? { stock: v.stock } : {}),
+              ...(v.discount !== undefined ? { discount: v.discount } : {}),
             })),
           },
         },

@@ -27,4 +27,10 @@ export class ProductQueryDto {
    @IsOptional() @IsIn(['price','name'])
    sortBy?: 'price' | 'name' = 'price';
 
+   @IsOptional() @IsIn(['asc','desc'])
+   sortOrder?: 'asc' | 'desc' = 'asc';
+
+   @IsOptional() @IsString()
+   series?: string;
+
 }
