@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import { CollectionGrid } from "@/components/collection/collection-grid";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { ProductGridSkeleton } from "@/components/ui/skeleton";
 import { ApiErrorState } from "@/components/layout/api-error";
 import { loadCatalog } from "@/lib/catalog-api";
 
@@ -11,8 +9,18 @@ export const metadata: Metadata = {
   description: "Zemrek saat koleksiyonunu keşfedin.",
 };
 
-export default async function CollectionPage() {
-  const { products, failed } = await loadCatalog();
+/* Filtre seçimleri adresten okunuyor ama `useSearchParams` yerine sunucudan
+   prop olarak geçiyor: o hook bir Suspense sınırı gerektiriyor ve sınırın
+   içindeki ağaç hydrate olmadığı için filtreler tıklanamaz kalıyordu. */
+type Params = {
+  searchParams: Promise<{ q?: string; seri?: string; cinsiyet?: string }>;
+};
+
+export default async function CollectionPage({ searchParams }: Params) {
+  const [{ products, failed }, sp] = await Promise.all([
+    loadCatalog(),
+    searchParams,
+  ]);
 
   return (
     <div className="mx-auto max-w-[1280px] px-8 pb-24 pt-28 max-md:px-4 max-md:pb-14 max-md:pt-24">
@@ -26,10 +34,12 @@ export default async function CollectionPage() {
       {failed ? (
         <ApiErrorState />
       ) : (
-        // Filtreler arama parametrelerini okuduğu için Suspense sınırı gerekli.
-        <Suspense fallback={<ProductGridSkeleton />}>
-          <CollectionGrid products={products} />
-        </Suspense>
+        <CollectionGrid
+          products={products}
+          query={sp.q ?? ""}
+          series={sp.seri ?? "Tümü"}
+          gender={sp.cinsiyet ?? "Tümü"}
+        />
       )}
     </div>
   );

@@ -2,7 +2,7 @@
    Swagger hazır olduğunda `npm run gen:api` ile src/types/api.d.ts
    üretilecek; bu elle yazılmış tipler o zaman sadeleşir. */
 
-export type Gender = "ERKEK" | "KADIN" | "UNISEX";
+export type Gender = "ERKEK" | "KADIN";
 
 export interface Category {
   id: number;
@@ -21,15 +21,32 @@ export interface ProductVariant {
   productId: number;
 }
 
-export interface Product {
+/* Ürün sayfasındaki teknik künye. Hepsi backend'de opsiyonel: dolu olmayan
+   alan arayüzde hiç gösterilmiyor. */
+export interface ProductSpecs {
+  caseSize: string | null;
+  material: string | null;
+  bezel: string | null;
+  crown: string | null;
+  crystal: string | null;
+  waterResistance: string | null;
+  movement: string | null;
+  strap: string | null;
+  dial: string | null;
+}
+
+export interface Product extends ProductSpecs {
   id: number;
   name: string;
+  slug: string;
   description: string;
-  /** Vitrin bunları kullanmaz; geçerli fiyat ve stok varyantın üzerindedir. */
+  /** Model fiyatı; geçerli satış fiyatı yine varyantın üzerindedir. */
   price: string;
-  stock: number;
-  gender: Gender;
+  /** Bir ürün iki cinsiyete birden ait olabilir: ["ERKEK", "KADIN"]. */
+  genders: Gender[];
   series: string | null;
+  /** Stil etiketleri ("Lüks", "Dress", "Spor"…). */
+  styleTags: string[];
   categoryId: number;
   category?: Category;
   variants: ProductVariant[];
@@ -54,6 +71,25 @@ export interface ProductQuery {
   sortBy?: "price" | "name";
   page?: number;
   limit?: number;
+}
+
+/* ---------- Yorumlar ---------- */
+
+export interface Review {
+  id: number;
+  rating: number; // 1-5
+  comment: string;
+  createdAt: string;
+  userId: number;
+  productId: number;
+  user?: { id: number; name: string };
+}
+
+/** GET /products/:id/reviews — liste, ortalama puan ve toplam sayı. */
+export interface ReviewSummary {
+  data: Review[];
+  average: number;
+  count: number;
 }
 
 /* ---------- Auth ---------- */

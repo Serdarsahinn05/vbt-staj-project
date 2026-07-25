@@ -4,6 +4,7 @@ import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { ProductImage } from "@/components/ui/product-image";
 import { EmptyState } from "@/components/ui/empty-state";
+import { TrashIcon } from "@/components/ui/icons";
 import { PanelSkeleton } from "@/components/ui/skeleton";
 import { useCart } from "@/hooks/use-cart";
 import { formatPrice } from "@/lib/format";
@@ -98,8 +99,9 @@ export function CartView() {
                 <button
                   type="button"
                   onClick={() => remove(item.variantId)}
-                  className="cursor-pointer text-small text-body underline-offset-4 transition-colors hover:text-primary hover:underline"
+                  className="inline-flex cursor-pointer items-center gap-1.5 text-small text-body underline-offset-4 transition-colors hover:text-primary hover:underline"
                 >
+                  <TrashIcon size={15} />
                   Kaldır
                 </button>
 
@@ -114,8 +116,9 @@ export function CartView() {
         <button
           type="button"
           onClick={clear}
-          className="cursor-pointer self-start text-small text-body underline-offset-4 transition-colors hover:text-primary hover:underline"
+          className="inline-flex cursor-pointer items-center gap-1.5 self-start text-small text-body underline-offset-4 transition-colors hover:text-primary hover:underline"
         >
+          <TrashIcon size={15} />
           Sepeti boşalt
         </button>
       </div>

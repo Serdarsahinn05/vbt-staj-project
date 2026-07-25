@@ -5,16 +5,19 @@ import { HeartToggle } from "@/components/ui/heart";
 import { useFavorites } from "@/hooks/use-favorites";
 import { cn } from "@/lib/cn";
 import { useCartStore } from "@/stores/cart-store";
+import { toast } from "@/stores/toast-store";
 
 /* Detay sayfasının eylem butonları: Sepete Ekle (gold) + Favorilere Ekle.
    İkisi de seçili rengin varyant kimliğiyle çalışır. */
 export function ProductActions({
   variantId,
   name,
+  colorName,
   stock,
 }: {
   variantId: number;
   name: string;
+  colorName?: string;
   stock: number;
 }) {
   const add = useCartStore((s) => s.add);
@@ -28,6 +31,11 @@ export function ProductActions({
     add(variantId, 1);
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
+    toast({
+      title: "Sepete eklendi",
+      description: colorName ? `${name} · ${colorName}` : name,
+      action: { label: "Sepete Git", href: "/sepet" },
+    });
   }
 
   return (

@@ -7,6 +7,7 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { RouteProgress } from "@/components/layout/route-progress";
 import { StorefrontOnly } from "@/components/layout/storefront-only";
+import { ToastHost } from "@/components/layout/toast-host";
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
@@ -50,6 +51,7 @@ export default function RootLayout({
           <StorefrontOnly>
             <Footer />
           </StorefrontOnly>
+          <ToastHost />
         </Providers>
       </body>
     </html>

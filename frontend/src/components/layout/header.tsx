@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Logo } from "@/components/ui/logo";
+import { Logo, Wordmark } from "@/components/ui/logo";
+import { useCart } from "@/hooks/use-cart";
+import { useCatalog } from "@/hooks/use-catalog";
 import { useFavorites } from "@/hooks/use-favorites";
-import { useCartStore, cartCount } from "@/stores/cart-store";
 import { isAdmin, useAuthStore } from "@/stores/auth-store";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { cn } from "@/lib/cn";
@@ -60,10 +61,14 @@ export function Header() {
   const pathname = usePathname();
   const hydrated = useHydrated();
 
-  const items = useCartStore((s) => s.items);
+  /* Rozetler katalogda karşılığı bulunan kayıtları sayıyor. Ham listeyi saymak,
+     silinmiş bir varyant sepette ya da favorilerde kalmışsa sayfa boşken
+     rozette rakam gösteriyordu. */
+  const { count } = useCart();
+  const { variantIndex } = useCatalog();
   const { ids: favIds } = useFavorites();
+  const favCount = favIds.filter((id) => variantIndex.has(id)).length;
   const user = useAuthStore((s) => s.user);
-  const count = cartCount(items);
 
   // Ana sayfada koyu hero var → şeffaf başlar. Diğer sayfalarda baştan opak.
   const solid = scrolled || menuOpen || pathname !== "/";
@@ -97,8 +102,14 @@ export function Header() {
       }}
     >
       <div className="mx-auto grid max-w-[1280px] grid-cols-[auto_1fr_auto] items-center gap-6 px-8 py-3.5 max-lg:gap-2 max-lg:px-4 max-lg:py-3">
-        <Link href="/" aria-label="Zemrek ana sayfa" className="inline-flex">
+        <Link
+          href="/"
+          aria-label="Zemrek ana sayfa"
+          className="inline-flex items-center gap-2.5 max-lg:gap-2"
+        >
           <Logo className="h-12 max-lg:h-9" />
+          {/* Dar ekranda amblem tek başına yeter; wordmark yer kaplamasın. */}
+          <Wordmark className="h-5 max-lg:hidden" />
         </Link>
 
         <nav
@@ -161,7 +172,7 @@ export function Header() {
                 <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.51 4.04 3 5.5l7 7Z" />
               </Icon>
             </Link>
-            {hydrated && favIds.length > 0 && <CountBadge n={favIds.length} />}
+            {hydrated && favCount > 0 && <CountBadge n={favCount} />}
           </div>
 
           {hydrated && isAdmin(user) && (

@@ -68,6 +68,3 @@ export const useCartStore = create<CartState>()(
     },
   ),
 );
-
-export const cartCount = (items: CartItem[]): number =>
-  items.reduce((n, i) => n + i.quantity, 0);
