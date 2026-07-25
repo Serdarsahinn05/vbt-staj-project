@@ -1,15 +1,17 @@
-/* İçerik formatları — design system tokens.json "content" bölümüne göre:
-   fiyat ₺74.900,00 · puan "★ 4.9 (128)" (tek yıldız, 5'li dizi asla) */
+/* İçerik formatları — design system tokens.json "content" bölümüne göre
+   fiyat ₺74.900,00 biçiminde yazılır. */
 
 export function formatPrice(value: number | string): string {
-  const n = typeof value === "string" ? parseFloat(value) : value;
+  const n = typeof value === "string" ? Number.parseFloat(value) : value;
   return new Intl.NumberFormat("tr-TR", {
     style: "currency",
     currency: "TRY",
     minimumFractionDigits: 2,
-  }).format(n);
+  }).format(Number.isFinite(n) ? n : 0);
 }
 
-export function formatRating(score: number, count: number): string {
-  return `★ ${score.toLocaleString("tr-TR")} (${count})`;
+/* Fiyatlar yönetim panelinden giriliyor; henüz girilmemiş ürünlerde
+   ₺0,00 yerine bekleme metni gösterilir. */
+export function formatPriceOrPending(value: number): string {
+  return value > 0 ? formatPrice(value) : "Fiyat yakında";
 }
