@@ -9,12 +9,13 @@ import { ProductsModule } from './products/products.module';
 import { CartModule } from './cart/cart.module';
 import { UsersModule } from './users/users.module';
 import { FavoritesModule } from './favorites/favorites.module';
+import { ReviewsModule } from './reviews/reviews.module';
 
 @Module({
   imports: [
 
-    ConfigModule.forRoot({ isGlobal: true }), 
-    
+    ConfigModule.forRoot({ isGlobal: true }),
+
 
     PrismaModule,
     AuthModule,
@@ -23,6 +24,7 @@ import { FavoritesModule } from './favorites/favorites.module';
     CartModule,
     UsersModule,
     FavoritesModule,
+    ReviewsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

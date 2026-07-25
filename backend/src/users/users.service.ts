@@ -11,7 +11,7 @@ export class UsersService {
   async getProfile(userId: number) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, email: true, name: true, createdAt: true, addresses: true },
+      select: { id: true, email: true, name: true, role: true, createdAt: true, addresses: true },
     });
     if (!user) throw new NotFoundException('Kullanıcı bulunamadı');
     return user;

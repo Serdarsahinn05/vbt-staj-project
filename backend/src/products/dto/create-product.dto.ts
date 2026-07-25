@@ -8,6 +8,7 @@ import {
     IsOptional,
     IsString,
     Matches,
+    Max,
     Min,
     ValidateNested,
 } from "class-validator";
@@ -38,6 +39,12 @@ export class ProductVariantDto {
     @IsInt()
     @Min(0)
     stock?: number;
+
+    @IsOptional()
+    @IsInt()
+    @Min(0)
+    @Max(100)
+    discount?: number; // yüzde
 }
 
 export class CreateProductDto {
@@ -47,11 +54,24 @@ export class CreateProductDto {
 
     @IsNotEmpty()
     @IsString()
-    description!: string;
+    slug!: string;
 
     @IsNotEmpty()
-    @IsEnum(Gender)
-    gender!: Gender;
+    @IsString()
+    description!: string;
+
+    // Model bazlı fiyat (tüm renkler aynı)
+    @IsNotEmpty()
+    @Matches(/^\d+(\.\d{1,2})?$/, {
+        message: 'price pozitif bir ondalık sayı olmalı (en fazla 2 basamak), örn. "145000"',
+    })
+    price!: string;
+
+    // Bir ürün birden fazla cinsiyete ait olabilir (ör. [ERKEK, KADIN])
+    @IsArray()
+    @ArrayMinSize(1)
+    @IsEnum(Gender, { each: true })
+    genders!: Gender[];
 
     @IsOptional()
     @IsString()
