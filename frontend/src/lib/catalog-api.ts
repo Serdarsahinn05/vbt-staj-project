@@ -1,10 +1,13 @@
 import { api } from "@/lib/api";
 import { toCatalog, type CatalogProduct } from "@/lib/catalog";
 import type {
+  Category,
+  CreateProductPayload,
   Paginated,
   Product,
   ProductQuery,
   ProductVariant,
+  UpdateProductPayload,
   UpdateVariantPayload,
 } from "@/types";
 
@@ -67,4 +70,29 @@ export function updateVariant(
     auth: true,
     body: payload,
   });
+}
+
+/* Ürün yönetimi — hepsi ADMIN korumalı. */
+
+export function fetchCategories(): Promise<Category[]> {
+  return api<Category[]>("/categories");
+}
+
+export function createProduct(payload: CreateProductPayload): Promise<Product> {
+  return api<Product>("/products", { method: "POST", auth: true, body: payload });
+}
+
+export function updateProduct(
+  id: number,
+  payload: UpdateProductPayload,
+): Promise<Product> {
+  return api<Product>(`/products/${id}`, {
+    method: "PATCH",
+    auth: true,
+    body: payload,
+  });
+}
+
+export function deleteProduct(id: number): Promise<void> {
+  return api<void>(`/products/${id}`, { method: "DELETE", auth: true });
 }

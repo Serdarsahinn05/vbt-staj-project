@@ -13,7 +13,7 @@ import { cn } from "@/lib/cn";
 import { formatPrice } from "@/lib/format";
 import { fetchProfile } from "@/lib/user-api";
 import { useAuthStore } from "@/stores/auth-store";
-import { useCartStore } from "@/stores/cart-store";
+
 import type { Address } from "@/types";
 
 /* Ödeme akışı arayüzde tamamlanıyor: form doğrulandığında sipariş numarası
@@ -31,8 +31,8 @@ function newOrderNumber(): string {
 }
 
 export function CheckoutView() {
-  const { rows, subtotal, shipping, total, ready } = useCart();
-  const clearCart = useCartStore((s) => s.clear);
+  const { rows, subtotal, shipping, total, ready, clear: clearCart } = useCart();
+  
   const [placed, setPlaced] = useState<PlacedOrder | null>(null);
 
   // Onaydan sonra sepet boşaldığı için bu kontrol diğerlerinden önce geliyor;

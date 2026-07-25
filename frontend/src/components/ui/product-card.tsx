@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { HeartToggle } from "@/components/ui/heart";
+import { BagIcon, EyeIcon } from "@/components/ui/icons";
 import { CardPending } from "@/components/ui/link-pending";
 import { ProductImage } from "@/components/ui/product-image";
 import { Stars } from "@/components/ui/stars";
@@ -18,7 +19,7 @@ import {
   type CatalogVariant,
 } from "@/lib/catalog";
 import { formatPrice, formatPriceOrPending } from "@/lib/format";
-import { useCartStore } from "@/stores/cart-store";
+import { useCartActions } from "@/hooks/use-cart";
 import { toast } from "@/stores/toast-store";
 
 /* Beyaz yüzey kart, 4:5 görsel. Görsele tıklayınca detaya gider;
@@ -45,45 +46,6 @@ function CardRating({ productId }: { productId: number }) {
   );
 }
 
-function BagIcon() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-      <path d="M3 6h18" />
-      <path d="M16 10a4 4 0 0 1-8 0" />
-    </svg>
-  );
-}
-
-function EyeIcon() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-}
-
 export function ProductCard({
   product,
   variant = defaultVariant(product),
@@ -93,7 +55,7 @@ export function ProductCard({
 }) {
   const href = `/urun/${product.slug}`;
 
-  const add = useCartStore((s) => s.add);
+  const { add } = useCartActions();
   const { isFavorite, toggle } = useFavorites();
   const [added, setAdded] = useState(false);
 

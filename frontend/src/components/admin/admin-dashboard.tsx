@@ -354,10 +354,9 @@ export function AdminDashboard() {
       {missingImages.length > 0 && (
         <Notice>
           <strong className="font-semibold">
-            {missingImages.length} rengin görseli yüklenmemiş.
+            {missingImages.length} rengin görseli yüklenemedi.
           </strong>{" "}
-          Seed bu modeller için de Cloudinary bağlantısı üretmiş ama dosyalar
-          orada yok — backend&apos;e bildirilmeli.
+          Bu renkler vitrinde marka görseliyle çıkıyor.
         </Notice>
       )}
 

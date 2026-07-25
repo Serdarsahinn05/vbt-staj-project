@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { TrashIcon } from "@/components/ui/icons";
 import { Notice } from "@/components/ui/notice";
-import { Stars } from "@/components/ui/stars";
+import { Star, Stars } from "@/components/ui/stars";
 import { useReviews } from "@/hooks/use-reviews";
 import { ApiError } from "@/lib/api";
 import { cn } from "@/lib/cn";
@@ -63,7 +63,7 @@ export function ProductReviews({
         )
       ) : (
         <p className="mb-9 rounded-lg border border-border-subtle bg-surface px-6 py-5 text-[15px] text-body">
-          Değerlendirme yazmak için{" "}
+          Değerlendirme yapmak için{" "}
           <Link
             href="/giris"
             className="font-semibold text-primary underline-offset-4 hover:underline"
@@ -90,9 +90,11 @@ export function ProductReviews({
               className="rounded-lg border border-border-subtle bg-surface p-6 max-sm:p-5"
             >
               <ReviewHead review={review} />
-              <p className="mt-3 text-[15px] leading-[1.7] text-body">
-                {review.comment}
-              </p>
+              {review.comment && (
+                <p className="mt-3 text-[15px] leading-[1.7] text-body">
+                  {review.comment}
+                </p>
+              )}
             </li>
           ))}
         </ul>
@@ -132,9 +134,11 @@ function MyReview({
         Değerlendirmeniz
       </div>
       <ReviewHead review={review} />
-      <p className="mt-3 text-[15px] leading-[1.7] text-body">
-        {review.comment}
-      </p>
+      {review.comment && (
+        <p className="mt-3 text-[15px] leading-[1.7] text-body">
+          {review.comment}
+        </p>
+      )}
       <button
         type="button"
         onClick={onDelete}
@@ -156,20 +160,21 @@ function ReviewForm({
   error,
 }: {
   productName: string;
-  onSubmit: (rating: number, comment: string) => void;
+  onSubmit: (rating: number, comment?: string) => void;
   sending: boolean;
   error: unknown;
 }) {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
 
-  const ready = rating > 0 && comment.trim().length > 0;
+  // Yorum metni isteğe bağlı; göndermek için puan yeterli.
+  const ready = rating > 0;
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        if (ready) onSubmit(rating, comment.trim());
+        if (ready) onSubmit(rating, comment.trim() || undefined);
       }}
       className="mb-9 rounded-lg border border-border-subtle bg-surface p-6 max-sm:p-5"
     >
@@ -194,7 +199,7 @@ function ReviewForm({
                 "hover:scale-110 active:scale-95",
               )}
             >
-              <StarGlyph filled={value <= rating} />
+              <Star filled={value <= rating} size={26} />
             </button>
           ))}
         </div>
@@ -208,38 +213,28 @@ function ReviewForm({
         onChange={(e) => setComment(e.target.value)}
         rows={4}
         maxLength={600}
-        placeholder="Modeli neden beğendiniz? Kullanım deneyiminizi yazın."
+        placeholder="İsterseniz birkaç cümle yazın — zorunlu değil."
         className="w-full resize-y rounded-md border border-border-strong/55 bg-surface px-4 py-3 text-[15px] text-body outline-none transition-colors placeholder:text-body/70 focus:border-accent"
       />
 
       <div className="mt-4 flex flex-wrap items-center gap-4">
-        <Button type="submit" variant="primary" size="md" disabled={!ready || sending}>
-          {sending ? "Gönderiliyor…" : "Değerlendirmeyi Gönder"}
+        <Button
+          type="submit"
+          variant="primary"
+          size="md"
+          disabled={!ready || sending}
+        >
+          {sending
+            ? "Gönderiliyor…"
+            : comment.trim()
+              ? "Değerlendirmeyi Gönder"
+              : "Puanı Gönder"}
         </Button>
         <span className="text-small text-body">{comment.length} / 600</span>
       </div>
 
       {error ? <Notice tone="error">{errorText(error)}</Notice> : null}
     </form>
-  );
-}
-
-/** Form içindeki tıklanabilir yıldız; `Stars` salt gösterim için. */
-function StarGlyph({ filled }: { filled: boolean }) {
-  return (
-    <svg
-      width="26"
-      height="26"
-      viewBox="0 0 24 24"
-      fill={filled ? "var(--color-star-gold)" : "none"}
-      stroke={filled ? "var(--color-star-gold)" : "currentColor"}
-      strokeWidth="1.5"
-      strokeLinejoin="round"
-      aria-hidden
-      className={filled ? undefined : "opacity-40"}
-    >
-      <path d="M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8-5.3-2.8-5.3 2.8 1-5.8L3.5 9.7l5.9-.9z" />
-    </svg>
   );
 }
 

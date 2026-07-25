@@ -73,12 +73,34 @@ export interface ProductQuery {
   limit?: number;
 }
 
+/* ---------- Sepet ---------- */
+
+/** GET /cart satırı; varyant ve ürün bilgisi gömülü gelir. */
+export interface ServerCartItem {
+  id: number;
+  cartId: number;
+  variantId: number;
+  quantity: number;
+  /** İndirim uygulanmış birim fiyat. */
+  unitPrice: number;
+  lineTotal: number;
+  variant?: ProductVariant & { product?: Product };
+}
+
+export interface ServerCart {
+  id: number;
+  userId: number;
+  items: ServerCartItem[];
+  total: number;
+}
+
 /* ---------- Yorumlar ---------- */
 
 export interface Review {
   id: number;
   rating: number; // 1-5
-  comment: string;
+  /** Yorum metni isteğe bağlı: yalnızca puan verilebiliyor. */
+  comment: string | null;
   createdAt: string;
   userId: number;
   productId: number;
@@ -125,3 +147,30 @@ export interface UpdateVariantPayload {
   stock?: number;
   discount?: number;
 }
+
+/** POST /products içindeki renk seçeneği. */
+export interface VariantPayload {
+  colorName: string;
+  colorHex: string;
+  images: string[];
+  price?: string;
+  stock?: number;
+  discount?: number;
+}
+
+/* POST /products gövdesi. Zorunlu alanlar backend DTO'suyla birebir:
+   ad, slug, açıklama, fiyat, en az bir cinsiyet, kategori ve en az bir renk. */
+export interface CreateProductPayload extends Partial<ProductSpecs> {
+  name: string;
+  slug: string;
+  description: string;
+  price: string;
+  genders: Gender[];
+  categoryId: number;
+  variants: VariantPayload[];
+  series?: string;
+  styleTags?: string[];
+}
+
+/** PATCH /products/:id gövdesi — hepsi isteğe bağlı. */
+export type UpdateProductPayload = Partial<CreateProductPayload>;

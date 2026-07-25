@@ -110,6 +110,7 @@ export function LunarisSequence({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const introRef = useRef<HTMLDivElement>(null);
   const outroRef = useRef<HTMLDivElement>(null);
+  const skipRef = useRef<HTMLAnchorElement>(null);
   const labelRefs = useRef<(HTMLDivElement | null)[]>([]);
   const lineRefs = useRef<(SVGPolylineElement | null)[]>([]);
   const dotRefs = useRef<(SVGCircleElement | null)[]>([]);
@@ -325,6 +326,14 @@ export function LunarisSequence({
         outroRef.current.style.transform = `translateY(${(1 - Math.min(1, t)) * 16}px)`;
         outroRef.current.style.pointerEvents = t > 0.6 ? "auto" : "none";
       }
+
+      /* Atlama bağlantısı sekans boyunca duruyor, kapanış belirmeye başlayınca
+         çekiliyor: orada zaten "İncele" düğmesi var, ikisi çakışmasın. */
+      if (skipRef.current) {
+        const fade = Math.min(1, Math.max(0, (progress - 0.88) / 0.06));
+        skipRef.current.style.opacity = `${1 - fade}`;
+        skipRef.current.style.pointerEvents = fade > 0.5 ? "none" : "auto";
+      }
     }
 
     function tick() {
@@ -462,6 +471,29 @@ export function LunarisSequence({
           </p>
           <span aria-hidden className="z-scroll-hint mt-1 h-8 w-px bg-gradient-to-b from-accent to-transparent" />
         </div>
+
+        {/* Sekansı atlayıp ürünlere geçmek isteyene kestirme. Sayfa yumuşak
+            kaydırma kullandığı için hedefe süzülerek iniyor. */}
+        <a
+          ref={skipRef}
+          href="#one-cikanlar"
+          className="absolute bottom-8 right-8 z-30 inline-flex items-center gap-2 rounded-pill border border-white/20 bg-graphite-700/70 px-4 py-2.5 font-heading text-micro font-semibold uppercase tracking-[0.14em] text-on-dark backdrop-blur-md transition-[background-color,border-color,color] duration-[var(--duration-fast)] ease-standard hover:border-accent hover:text-accent max-md:bottom-5 max-md:right-5"
+        >
+          Sekansı geç
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
+            <path d="M12 5v14M6 13l6 6 6-6" />
+          </svg>
+        </a>
 
         {/* Kaç durak geçildiğini gösteren ince ray. */}
         <div

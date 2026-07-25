@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ProductDetail } from "@/components/product/product-detail";
 import { ApiErrorState } from "@/components/layout/api-error";
 import { ProductCard } from "@/components/ui/product-card";
-import { getBySlug } from "@/lib/catalog";
+import { defaultVariant, getBySlug } from "@/lib/catalog";
 import { loadCatalog } from "@/lib/catalog-api";
 
 type Params = { params: Promise<{ slug: string }> };
@@ -14,7 +14,34 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { products } = await loadCatalog();
   const product = getBySlug(products, slug);
   if (!product) return { title: "Ürün bulunamadı" };
-  return { title: product.name, description: product.description };
+
+  /* Paylaşım kartında ürünün kendi fotoğrafı çıksın. Cloudinary adresine
+     kare bir dönüşüm ekleniyor: ham görsel 900 px ve sosyal medya önizlemesi
+     için gereğinden büyük. */
+  const cover = defaultVariant(product).images[0];
+  const image = cover?.replace(
+    "/image/upload/",
+    "/image/upload/f_auto,q_auto,w_1200,h_1200,c_fill/",
+  );
+
+  return {
+    title: product.name,
+    description: product.description,
+    alternates: { canonical: `/urun/${product.slug}` },
+    openGraph: {
+      type: "website",
+      title: `${product.name} — ${product.series} Koleksiyonu`,
+      description: product.description,
+      url: `/urun/${product.slug}`,
+      images: image ? [{ url: image, width: 1200, height: 1200 }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: product.name,
+      description: product.description,
+      images: image ? [image] : undefined,
+    },
+  };
 }
 
 export default async function ProductPage({ params }: Params) {

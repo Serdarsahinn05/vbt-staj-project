@@ -8,13 +8,10 @@ import { TrashIcon } from "@/components/ui/icons";
 import { PanelSkeleton } from "@/components/ui/skeleton";
 import { useCart } from "@/hooks/use-cart";
 import { formatPrice } from "@/lib/format";
-import { useCartStore } from "@/stores/cart-store";
 
 export function CartView() {
-  const setQuantity = useCartStore((s) => s.setQuantity);
-  const remove = useCartStore((s) => s.remove);
-  const clear = useCartStore((s) => s.clear);
-  const { rows, subtotal, shipping, total, ready } = useCart();
+  const { rows, subtotal, shipping, total, ready, setQuantity, remove, clear } =
+    useCart();
 
   if (!ready) return <PanelSkeleton />;
 

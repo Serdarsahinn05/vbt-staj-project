@@ -87,15 +87,14 @@ const GENDER_LABEL: Record<Gender, DisplayGender> = {
   KADIN: "Kadın",
 };
 
-/* İki renkli modellerde künye alanı her iki rengi tek metinde topluyor:
-   "Rose Gold (Renk 1) / Silver (Renk 2)". Kullanıcı renkleri adıyla seçtiği
-   için "(Renk 2)" ona bir şey anlatmıyor — seçili renge düşen parçayı ayırıp
-   yalnızca onu gösteriyoruz.
+/* Çift renkli modellerde künye alanı iki rengi tek metinde topluyor:
+   "Rose Gold (Renk 1) / Silver (Renk 2)". Seçili renge düşen parça ayrılıp
+   yalnızca o gösteriliyor — kullanıcı renkleri adıyla seçtiği için "(Renk 2)"
+   ona bir şey anlatmıyor.
 
-   Eşleştirme sıraya değil renk ADINA bakıyor: metindeki "(Renk 1)" etiketi
-   varyant dizisinin sırasıyla aynı olmak zorunda değil (backend Vesper'ın
-   sırasını değiştirdiğinde ikisi ayrıştı). Ad da tutmazsa metin olduğu gibi
-   kalıyor — yanlış rengi göstermektense hepsini göstermek yeğdir. */
+   Eşleştirme sıraya değil renk adına bakıyor; metindeki etiket varyant
+   dizisinin sırasıyla aynı olmak zorunda değil. Ad tutmazsa metin olduğu gibi
+   kalıyor: yanlış rengi göstermektense hepsini göstermek yeğdir. */
 const COLOR_TAG = /\s*\(Renk \d+\)/g;
 
 export function specForVariant(value: string, colorName: string): string {

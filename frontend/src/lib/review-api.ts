@@ -8,15 +8,16 @@ export function fetchReviews(productId: number): Promise<ReviewSummary> {
   return api<ReviewSummary>(`/products/${productId}/reviews`);
 }
 
+/** Yorum metni isteğe bağlı; boşsa yalnızca puan gönderiliyor. */
 export function addReview(
   productId: number,
   rating: number,
-  comment: string,
+  comment?: string,
 ): Promise<Review> {
   return api<Review>(`/products/${productId}/reviews`, {
     method: "POST",
     auth: true,
-    body: { rating, comment },
+    body: comment ? { rating, comment } : { rating },
   });
 }
 
