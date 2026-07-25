@@ -32,12 +32,16 @@ Backend'in çalışıyor olması gerekir (varsayılan `http://localhost:3000`, f
 
 ```text
 src/
-├── app/            # sayfalar, layout, globals.css
-├── components/     # ui/ (Button, ProductCard...) ve layout/ (Header, Footer)
-├── lib/            # api istemcisi, fiyat/puan formatları
-├── stores/         # Zustand (sepet)
+├── app/            # rotalar, layout, globals.css
+├── components/     # ui/ (Button, ProductCard...), layout/ (Header, Footer)
+│                   # ve sayfa bileşenleri (product/, cart/, admin/...)
+├── hooks/          # katalog, sepet, favoriler
+├── lib/            # api istemcisi, katalog dönüşümü, fiyat/biçim yardımcıları
+├── stores/         # Zustand (sepet, oturum, favoriler)
 ├── styles/tokens/  # design token CSS'leri
 └── types/          # API tipleri
 ```
+
+Rotalar: `/` · `/koleksiyon` · `/urun/[slug]` · `/sepet` · `/odeme` · `/favoriler` · `/giris` · `/kayit` · `/hesap` · `/admin`
 
 Token dosyaları `docs/design-system/tokens`'ın kopyası (Vercel sadece bu klasörü deploy ettiği için). Kaynak değişirse: `cp ../docs/design-system/tokens/*.css src/styles/tokens/`

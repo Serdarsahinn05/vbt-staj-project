@@ -81,6 +81,9 @@
   --text-h3--line-height: 1.25;
   --text-body-lg: 18px;
   --text-body-lg--line-height: 1.6;
+  /* DİKKAT: `--color-body` da tanımlı olduğu için `text-body` utility'si
+     PUNTO değil RENK üretiyor (.text-body{color:#3a3a3a}). 15px istiyorsan
+     `text-[15px]` yaz; zaten gövde varsayılanı olduğu için çoğu yerde gereksiz. */
   --text-body: 15px;
   --text-body--line-height: 1.6;
   --text-small: 13px;
@@ -100,25 +103,206 @@
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Varsayılanlar `base` katmanında olmalı. Katmansız yazılırsa CSS kuralı
+   gereği Tailwind'in `utilities` katmanını YENER: `h1` rengi burada sabitken
+   `text-steel-50` / `text-on-dark` hiç uygulanmaz ve koyu zemindeki her
+   başlık siyah kalır. */
+@layer base {
+  body {
+    background: var(--bg-page);
+    color: var(--text-body);
+    font-family: var(--font-body);
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-heading);
+    color: var(--text-heading);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+/* Mini-demo'daki hareket dili (zPageIn / zRise / zZoom).
+   Bounce/spin yok; hepsi ease-standard, kısa ve ölçülü. */
+@keyframes zPageIn {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@keyframes zRise {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes zZoom {
+  from {
+    transform: scale(1.1);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
 body {
-  background: var(--bg-page);
-  color: var(--text-body);
-  font-family: var(--font-body);
-  font-size: var(--fs-body);
-  line-height: var(--lh-body);
+  animation: zPageIn 0.9s var(--ease-standard) both;
 }
 
-h1,
-h2,
-h3,
-h4 {
-  font-family: var(--font-heading);
-  color: var(--text-heading);
+.z-rise {
+  animation: zRise 0.7s var(--ease-standard) both;
 }
 
-:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
+.z-zoom {
+  animation: zZoom 9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Favori kalbi: tıklanınca kalp "pop" yapar, çevresinden halka açılır. */
+@keyframes zHeartPop {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.4);
+  }
+  60% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes zHeartRing {
+  from {
+    transform: scale(0.6);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.z-heart-pop {
+  animation: zHeartPop 0.4s var(--ease-standard) both;
+}
+
+.z-heart-ring {
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  border: 2px solid var(--color-primary);
+  animation: zHeartRing 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ---------- Bekleme durumları ---------- */
+
+@keyframes zSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Parlama iskeletlerin üzerinden geçen açık bir bant; zemin rengi
+   bileşenden gelir, buradaki yalnızca hareketli katman. */
+@keyframes zShimmer {
+  from {
+    background-position: -150% 0;
+  }
+  to {
+    background-position: 250% 0;
+  }
+}
+
+@keyframes zScrollHint {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateY(8px);
+    opacity: 1;
+  }
+}
+
+@keyframes zBootOut {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+.z-spin {
+  animation: zSpin 0.9s linear infinite;
+}
+
+.z-shimmer,
+.z-shimmer-dark {
+  background-repeat: no-repeat;
+  background-size: 150% 100%;
+  animation: zShimmer 1.5s var(--ease-standard) infinite;
+}
+
+.z-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.85),
+    transparent
+  );
+}
+
+.z-shimmer-dark {
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.07),
+    transparent
+  );
+}
+
+.z-scroll-hint {
+  animation: zScrollHint 1.9s var(--ease-standard) infinite;
+}
+
+/* Açılış perdesi. Kendini CSS ile de kapatıyor: JS çalışmasa ya da hydration
+   patlasa bile site perdenin arkasında kilitli kalmıyor. */
+.z-boot {
+  animation: zBootOut 0.5s var(--ease-standard) 3.6s forwards;
+}
+
+.z-boot[data-state="done"] {
+  animation: none;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.45s var(--ease-standard),
+    visibility 0s linear 0.45s;
+}
+
+.z-boot-mark {
+  animation: zRise 0.6s var(--ease-standard) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -127,5 +311,10 @@ h4 {
   *::after {
     animation: none !important;
     transition: none !important;
+  }
+
+  /* Perdenin JS'siz güvenlik kapanışı hareket kısıtlamasında da çalışmalı. */
+  .z-boot {
+    animation: zBootOut 0.01s linear 3.6s forwards !important;
   }
 }

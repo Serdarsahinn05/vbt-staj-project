@@ -2,6 +2,11 @@ import type { Metadata } from "next";
 import { Montserrat, Poppins } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import { BootLoader } from "@/components/layout/boot-loader";
+import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
+import { RouteProgress } from "@/components/layout/route-progress";
+import { StorefrontOnly } from "@/components/layout/storefront-only";
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
@@ -32,10 +37,20 @@ export default function RootLayout({
   return (
     <html
       lang="tr"
-      className={`${montserrat.variable} ${poppins.variable} h-full antialiased`}
+      className={`${montserrat.variable} ${poppins.variable} h-full scroll-smooth scroll-pt-20 antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Providers>{children}</Providers>
+        <Providers>
+          <BootLoader />
+          <RouteProgress />
+          <StorefrontOnly>
+            <Header />
+          </StorefrontOnly>
+          <main className="flex-1">{children}</main>
+          <StorefrontOnly>
+            <Footer />
+          </StorefrontOnly>
+        </Providers>
       </body>
     </html>
   );
