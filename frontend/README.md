@@ -2,13 +2,13 @@
 
 Zemrek e-ticaret sitesinin web arayüzü. Tasarım kaynağı: [Zemrek Design System](https://zemrekdesignsystem.vercel.app).
 
-Veri tamamen backend API'sinden geliyor; mock veri yok, backend'de karşılığı olmayan alan uydurulmuyor.
+Veri tamamen backend API'sinden geliyor; mock veri yok.
 
 ## Stack
 
 Next.js 16 (App Router) + TypeScript, Tailwind CSS v4, TanStack Query, Zustand, Playwright.
 
-Ödevin React için önerdiği kombinasyon. Tailwind'i seçtik çünkü design token'ları `@theme` ile utility'lere bağlanıyor (`bg-primary`, `text-accent`, `font-heading` vb.), böylece tasarım sistemi dışına çıkmak zorlaşıyor. Tipler `npm run gen:api` ile backend Swagger'ından üretilebiliyor.
+Tailwind'i seçtik çünkü design token'ları `@theme` ile utility'lere bağlanıyor (`bg-primary`, `text-accent`, `font-heading` vb.), böylece tasarım sistemi dışına çıkmak zorlaşıyor. Tipler `npm run gen:api` ile backend Swagger'ından üretilebiliyor.
 
 ## Kurulum
 
@@ -23,36 +23,43 @@ Backend'in çalışıyor olması gerekir (varsayılan `http://localhost:3000`, f
 
 ## Komutlar
 
-| Komut | Açıklama |
-| ----- | -------- |
-| `npm run dev` | Dev sunucu (3001) |
-| `npm run build` | Production build |
-| `npm run lint` | ESLint |
-| `npm run test:e2e` | Playwright uçtan uca testler |
+| Komut                 | Açıklama                       |
+| --------------------- | ------------------------------ |
+| `npm run dev`         | Dev sunucu (3001)              |
+| `npm run build`       | Production build               |
+| `npm run lint`        | ESLint                         |
+| `npm run test:e2e`    | Playwright uçtan uca testler   |
 | `npm run test:e2e:ui` | Testleri görsel modda çalıştır |
-| `npm run gen:api` | Swagger'dan tip üretimi |
+| `npm run gen:api`     | Swagger'dan tip üretimi        |
 
 ## Özellikler
 
 **Vitrin**
+
 - Ana sayfa: hero, Lunaris kaydırma sekansı (150 kare, canvas), öne çıkan ürünler, yeni gelenler, sezon indirimi, seriler, marka hikayesi
 - Koleksiyon: seri / cinsiyet / stil filtreleri, sıralama, arama
 - Ürün detayı: renk varyantı seçimi (galeri, fiyat ve stok birlikte değişir), teknik künye, değerlendirmeler
 
 **Alışveriş**
+
 - Sepet: girişliyse sunucuda (`/cart`), misafirken tarayıcıda; girişte misafir sepeti hesaba taşınır
 - Favoriler: aynı desen, varyant bazlı
 - Ödeme: kayıtlı adresten seçim, sipariş onay ekranı
 - Sepete eklemede "Sepete Git" kestirmeli bildirim
 
 **Değerlendirmeler**
-- Ürün sayfasında ortalama puan, yorum listesi ve puanlı yorum formu
-- Ürün başına tek yorum (backend kuralı); kendi yorumunu silebilirsin
-- Ürün kartlarında yıldız + puan + yorum sayısı
+
+- Ürün sayfasında ortalama puan, yorum listesi ve puanlı değerlendirme formu
+- Yorum metni isteğe bağlı: yalnızca puan da verilebilir
+- Ürün başına tek değerlendirme (backend kuralı); kendi değerlendirmeni silebilirsin
+- Ürün kartlarında yıldız + puan + değerlendirme sayısı
 
 **Hesap ve yönetim**
+
 - Giriş, kayıt, profil, adres yönetimi
-- `/admin` — fiyat, stok ve indirim düzenleme; ADMIN rolüne kapalı
+- `/admin` — fiyat, stok ve indirim düzenleme
+- `/admin/urunler` — ürün oluşturma, düzenleme, silme
+- Panelin tamamı ADMIN rolüne kapalı
 
 ## Mimari notlar
 
@@ -83,6 +90,13 @@ Token dosyaları `docs/design-system/tokens`'ın kopyası (Vercel sadece bu klas
 
 ## Testler
 
-`e2e/` altında üç akış: misafirin uçtan uca alışverişi (ürün → sepet → ödeme → onay), hesap akışı (kayıt, favori, misafir sepetinin taşınması) ve yönetim paneli yetkilendirmesi.
+Playwright ile 12 uçtan uca test:
 
-Testler gerçek backend'e karşı çalışır; çalıştırmadan önce backend ayakta olmalı.
+| Dosya                | Kapsam                                                                    |
+| -------------------- | ------------------------------------------------------------------------- |
+| `storefront.spec.ts` | ürün → sepet → ödeme → sipariş onayı, koleksiyon filtreleri, teknik künye |
+| `account.spec.ts`    | kayıt, favori ekleme, misafir sepetinin hesaba taşınması                  |
+| `reviews.spec.ts`    | yalnızca puanla değerlendirme, puansız gönderilememe                      |
+| `admin.spec.ts`      | panel yetkilendirmesi, ürün oluşturma ve silme                            |
+
+Testler gerçek backend'e karşı çalışır; çalıştırmadan önce backend ayakta olmalı. Oluşturulan ürün test sonunda siliniyor, test kullanıcıları ise benzersiz e-postayla açılıp veritabanında kalıyor.
