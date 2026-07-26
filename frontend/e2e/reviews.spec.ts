@@ -56,3 +56,25 @@ test("yorumsuz değerlendirmeler listede boş satır bırakmıyor", async ({
     .count();
   expect(emptyParagraphs).toBe(0);
 });
+
+test("uzun değerlendirme listesi tek düğmeyle açılıp kapanıyor", async ({
+  page,
+}) => {
+  // Bu modelde seed'den gelen çok sayıda değerlendirme var.
+  await goto(page, "/urun/aurelius");
+
+  /* Katlanan bölüm DOM'da kalıyor, yalnızca yüksekliği sıfırlanıyor —
+     bu yüzden eleman sayısı değil gerçek yükseklik ölçülüyor. */
+  const collapsible = page.locator("#degerlendirmeler div.grid").first();
+  const height = async () => (await collapsible.boundingBox())?.height ?? 0;
+
+  expect(await height()).toBeLessThan(5);
+
+  await page
+    .getByRole("button", { name: /değerlendirme daha göster/i })
+    .click();
+  await expect.poll(height, { timeout: 5000 }).toBeGreaterThan(200);
+
+  await page.getByRole("button", { name: "Daha az göster" }).click();
+  await expect.poll(height, { timeout: 5000 }).toBeLessThan(5);
+});

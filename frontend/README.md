@@ -90,13 +90,14 @@ Token dosyaları `docs/design-system/tokens`'ın kopyası (Vercel sadece bu klas
 
 ## Testler
 
-Playwright ile 12 uçtan uca test:
+Playwright ile 14 uçtan uca test:
 
-| Dosya                | Kapsam                                                                    |
-| -------------------- | ------------------------------------------------------------------------- |
-| `storefront.spec.ts` | ürün → sepet → ödeme → sipariş onayı, koleksiyon filtreleri, teknik künye |
-| `account.spec.ts`    | kayıt, favori ekleme, misafir sepetinin hesaba taşınması                  |
-| `reviews.spec.ts`    | yalnızca puanla değerlendirme, puansız gönderilememe                      |
-| `admin.spec.ts`      | panel yetkilendirmesi, ürün oluşturma ve silme                            |
+| Dosya                | Kapsam                                                                     |
+| -------------------- | -------------------------------------------------------------------------- |
+| `storefront.spec.ts` | ürün → sepet → ödeme → sipariş onayı, koleksiyon filtreleri, teknik künye  |
+| `account.spec.ts`    | kayıt, favori ekleme, misafir sepetinin hesaba taşınması                   |
+| `reviews.spec.ts`    | yalnızca puanla değerlendirme, puansız gönderilememe, listenin katlanması  |
+| `gallery.spec.ts`    | üst üste duran fotoğraf katmanlarından yalnızca seçili olanın tıklanabilmesi |
+| `admin.spec.ts`      | panel yetkilendirmesi, ürün oluşturma ve silme                             |
 
 Testler gerçek backend'e karşı çalışır; çalıştırmadan önce backend ayakta olmalı. Oluşturulan ürün test sonunda siliniyor, test kullanıcıları ise benzersiz e-postayla açılıp veritabanında kalıyor.
