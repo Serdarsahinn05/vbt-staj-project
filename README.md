@@ -42,41 +42,46 @@ seviyesinde sabittir. Sepet ve favoriler ürüne değil **varyanta** bağlanır 
 böylece aynı modelin iki rengi sepette iki ayrı satır olarak görünür ve stok
 renk bazında doğru şekilde düşer.
 
+
+
 ## 🖼️ Vitrin
 
-> Ekran görüntüleri ve GIF'ler için yer tutucu — `docs/assets/` altına
-> eklenip aşağıdaki yorum satırları açılabilir.
-
-<!--
 <table>
   <tr>
     <td width="50%" align="center"><strong>Ana sayfa</strong></td>
     <td width="50%" align="center"><strong>Koleksiyon</strong></td>
   </tr>
   <tr>
-    <td><img src="docs/assets/home.png" alt="Zemrek ana sayfa"></td>
-    <td><img src="docs/assets/collection.png" alt="Zemrek koleksiyon filtreleri"></td>
+    <td><img src="docs/design-system/assets/anasayfa.jpg" alt="Zemrek ana sayfa"></td>
+    <td><img src="docs/design-system/assets/koleksiyon.jpg" alt="Zemrek koleksiyon filtreleri"></td>
   </tr>
   <tr>
     <td width="50%" align="center"><strong>Ürün detayı</strong></td>
+    <td width="50%" align="center"><strong>Teknik özellikler</strong></td>
+  </tr>
+  <tr>
+    <td><img src="docs/design-system/assets/ürün-detay.jpg" alt="Zemrek ürün detayı"></td>
+    <td><img src="docs/design-system/assets/teknik-özellikler.jpg" alt="Zemrek teknik özellikler bölümü"></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><strong>Değerlendirmeler</strong></td>
     <td width="50%" align="center"><strong>Sepet</strong></td>
   </tr>
   <tr>
-    <td><img src="docs/assets/product.png" alt="Zemrek ürün detayı, renk varyantı seçimi"></td>
-    <td><img src="docs/assets/cart.png" alt="Zemrek sepet ekranı"></td>
+    <td><img src="docs/design-system/assets/değerlendirmeler.jpg" alt="Zemrek müşteri değerlendirmeleri"></td>
+    <td><img src="docs/design-system/assets/sepet-sayfa.jpg" alt="Zemrek sepet ekranı"></td>
   </tr>
   <tr>
-    <td width="50%" align="center"><strong>Admin panel</strong></td>
-    <td width="50%" align="center"><strong>Mobil</strong></td>
+    <td width="50%" align="center"><strong>Admin — Fiyat & Stok</strong></td>
+    <td width="50%" align="center"><strong>Admin — Ürünler</strong></td>
   </tr>
   <tr>
-    <td><img src="docs/assets/admin.png" alt="Zemrek admin paneli"></td>
-    <td><img src="docs/assets/mobile-home.png" alt="Zemrek mobil ana ekran" width="300"></td>
+    <td><img src="docs/design-system/assets/admin-panel-1.jpg" alt="Zemrek admin fiyat ve stok yönetimi"></td>
+    <td><img src="docs/design-system/assets/admin-panel-2.jpg" alt="Zemrek admin ürünler listesi"></td>
   </tr>
 </table>
--->
 
-_(görseller buraya eklenecek)_
+
 
 ## 🏗️ Mimari
 
