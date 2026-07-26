@@ -1,5 +1,10 @@
 # Frontend — Zemrek Web
 
+![Next.js](https://img.shields.io/badge/Next.js_16-000000?style=flat-square&logo=next.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS_v4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
+![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=flat-square&logo=playwright&logoColor=white)
+
 Zemrek e-ticaret sitesinin web arayüzü. Tasarım kaynağı: [Zemrek Design System](https://zemrekdesignsystem.vercel.app).
 
 Veri tamamen backend API'sinden geliyor; mock veri yok.
