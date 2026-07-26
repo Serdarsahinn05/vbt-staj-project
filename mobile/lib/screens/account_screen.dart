@@ -3,6 +3,7 @@ import 'package:mobile/screens/landing_screen.dart';
 import 'package:mobile/services/auth_service.dart';
 import 'package:mobile/services/cart_service.dart';
 import 'package:mobile/services/favorites_service.dart';
+import 'package:mobile/widgets/zemrek_app_bar.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -49,15 +50,9 @@ class _AccountScreenState extends State<AccountScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
+      appBar: const ZemrekAppBar(
+        title: 'Hesabım',
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-        title: const Text(
-          'Hesabım',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),

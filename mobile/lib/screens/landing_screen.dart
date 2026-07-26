@@ -100,12 +100,7 @@ class _LandingScreenState extends State<LandingScreen> {
                                 );
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Color.fromARGB(
-                                  255,
-                                  218,
-                                  166,
-                                  88,
-                                ),
+                                backgroundColor: Color(0xFFC4A470),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(20),
                                 ),
@@ -191,7 +186,7 @@ class _LandingScreenState extends State<LandingScreen> {
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    "1974 yılında İsviçre'nin Cenevre kentinde kurulan Zemrek, geleneksel saat ustalığını modern tasarım anlayışıyla buluşturma hedefiyle yola çıktı. Kurulduğu günden bu yana her saat, deneyimli ustaların titiz işçiliğiyle üretiliyor ve kalite standartlarını karşılamak için kapsamlı dayanıklılık testlerinden geçiriliyor.",
+                    "1874 yılında İsviçre'nin Cenevre kentinde kurulan Zemrek, geleneksel saat ustalığını modern tasarım anlayışıyla buluşturma hedefiyle yola çıktı. Kurulduğu günden bu yana her saat, deneyimli ustaların titiz işçiliğiyle üretiliyor ve kalite standartlarını karşılamak için kapsamlı dayanıklılık testlerinden geçiriliyor.",
                   ),
                   SizedBox(height: 15),
                   Text(
