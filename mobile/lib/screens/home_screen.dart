@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/core/price_format.dart';
 import 'package:mobile/screens/main_shell.dart';
 import 'package:mobile/screens/product_detail.dart';
 import 'package:mobile/services/cart_service.dart';
 import 'package:mobile/services/favorites_service.dart';
 import 'package:mobile/services/product_services.dart';
+import 'package:mobile/services/review_service.dart';
+import 'package:mobile/widgets/zemrek_app_bar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,11 +18,14 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String _selectedGender = 'TÜMÜ';
   String _selectedStyle = 'TÜMÜ';
+  String _selectedSeries = 'TÜMÜ';
   static const _gold = Color(0xFFC4A470);
+  static const _seriesOrder = ['Signature', 'Horizon', 'Apex'];
 
   final _productService = ProductServices();
   List<Map<String, dynamic>> _products = [];
   List<String> _filterOptions = const ['TÜMÜ'];
+  List<String> _seriesOptions = const ['TÜMÜ'];
   bool _isLoading = true;
   String? _error;
 
@@ -40,19 +46,40 @@ class _HomeScreenState extends State<HomeScreen> {
       try {
         categories = await _productService.getCategories();
       } catch (_) {
-        // API yoksa ürün kategorilerinden üret
         categories = products
             .map((p) => (p['category'] as String? ?? '').trim())
             .where((e) => e.isNotEmpty)
             .toSet()
             .toList();
       }
+
+      // Kartlarda yorum sayısı için özetleri paralel çek
+      final withReviews = await Future.wait(
+        products.map((product) async {
+          final id = product['id'] as int;
+          try {
+            final summary = await ReviewService.instance.getReviews(id);
+            return {
+              ...product,
+              'reviewCount': summary.count,
+              'reviewAverage': summary.average,
+            };
+          } catch (_) {
+            return {...product, 'reviewCount': 0, 'reviewAverage': 0.0};
+          }
+        }),
+      );
+
       if (!mounted) return;
       setState(() {
-        _products = products;
+        _products = withReviews;
         _filterOptions = _productService.buildFilterOptions(categories);
+        _seriesOptions = _buildSeriesOptions(withReviews);
         if (!_filterOptions.contains(_selectedStyle)) {
           _selectedStyle = 'TÜMÜ';
+        }
+        if (!_seriesOptions.contains(_selectedSeries)) {
+          _selectedSeries = 'TÜMÜ';
         }
         _isLoading = false;
       });
@@ -65,17 +92,53 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  List<String> _buildSeriesOptions(List<Map<String, dynamic>> products) {
+    final found = products
+        .map((p) => (p['series'] as String?)?.trim() ?? '')
+        .where((e) => e.isNotEmpty)
+        .toSet();
+    final ordered = <String>[
+      for (final s in _seriesOrder)
+        if (found.contains(s)) s,
+    ];
+    final rest = found.difference(_seriesOrder.toSet()).toList()..sort();
+    return ['TÜMÜ', ...ordered, ...rest];
+  }
+
+  num _cardPrice(Map<String, dynamic> product) {
+    final effective = product['effectivePrice'];
+    if (effective is num && effective > 0) return effective;
+    final price = product['price'];
+    if (price is num) return price;
+    if (price is String) return num.tryParse(price) ?? 0;
+    return 0;
+  }
+
   List<Map<String, dynamic>> get _filteredProducts {
     return _products.where((p) {
-      final genderOk =
-          _selectedGender == 'TÜMÜ' || p['gender'] == _selectedGender;
-
-      if (!genderOk) return false;
+      if (!_matchesGender(p)) return false;
+      if (_selectedSeries != 'TÜMÜ') {
+        final series = (p['series'] as String?)?.trim() ?? '';
+        if (series.toLowerCase() != _selectedSeries.toLowerCase()) {
+          return false;
+        }
+      }
       return _productService.matchesCategoryFilter(
         p['category'] as String?,
         _selectedStyle,
       );
     }).toList();
+  }
+
+  bool _matchesGender(Map<String, dynamic> product) {
+    if (_selectedGender == 'TÜMÜ') return true;
+    final genders = (product['genders'] as List<dynamic>? ?? [])
+        .map((e) => e.toString())
+        .toList();
+    if (_selectedGender == 'UNISEX') {
+      return genders.contains('ERKEK') && genders.contains('KADIN');
+    }
+    return genders.contains(_selectedGender);
   }
 
   Future<void> _openStyleFilter() async {
@@ -164,19 +227,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
+      appBar: ZemrekAppBar(
+        title: 'ZEMREK',
+        brandTitle: true,
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-        title: const Text(
-          'ZEMREK',
-          style: TextStyle(
-            color: _gold,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
-        ),
         actions: [
           ListenableBuilder(
             listenable: CartService.instance,
@@ -229,6 +283,18 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             const SizedBox(height: 16),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (var i = 0; i < _seriesOptions.length; i++) ...[
+                    if (i > 0) const SizedBox(width: 8),
+                    _buildSeriesChip(_seriesOptions[i]),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
@@ -278,50 +344,73 @@ class _HomeScreenState extends State<HomeScreen> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : _error != null
-                      ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'Ürünler yüklenemedi.\nBackend çalışıyor mu?\n$_error',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(color: Colors.grey.shade700),
-                                ),
-                                const SizedBox(height: 16),
-                                ElevatedButton(
-                                  onPressed: _loadProducts,
-                                  child: const Text('Tekrar dene'),
-                                ),
-                              ],
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Ürünler yüklenemedi.\nBackend çalışıyor mu?\n$_error',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.grey.shade700),
                             ),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: _loadProducts,
+                              child: const Text('Tekrar dene'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : filtered.isEmpty
+                  ? Center(
+                      child: Text(
+                        'Bu filtreye uygun ürün yok',
+                        style: TextStyle(color: Colors.grey.shade600),
+                      ),
+                    )
+                  : GridView.builder(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 12,
+                            crossAxisSpacing: 12,
+                            childAspectRatio: 0.58,
                           ),
-                        )
-                      : filtered.isEmpty
-                          ? Center(
-                              child: Text(
-                                'Bu filtreye uygun ürün yok',
-                                style: TextStyle(color: Colors.grey.shade600),
-                              ),
-                            )
-                          : GridView.builder(
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                mainAxisSpacing: 12,
-                                crossAxisSpacing: 12,
-                                childAspectRatio: 0.65,
-                              ),
-                              itemCount: filtered.length,
-                              itemBuilder: (context, index) {
-                                return _buildProductCard(filtered[index]);
-                              },
-                            ),
+                      itemCount: filtered.length,
+                      itemBuilder: (context, index) {
+                        return _buildProductCard(filtered[index]);
+                      },
+                    ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSeriesChip(String label) {
+    final selected = _selectedSeries == label;
+    final text = label == 'TÜMÜ' ? 'TÜM KOLEKSİYON' : label.toUpperCase();
+
+    return ChoiceChip(
+      label: Text(
+        text,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: selected ? Colors.black87 : Colors.black54,
+        ),
+      ),
+      selected: selected,
+      selectedColor: _gold,
+      backgroundColor: Colors.white,
+      side: BorderSide(color: selected ? _gold : Colors.grey.shade300),
+      onSelected: (_) => setState(() => _selectedSeries = label),
+      showCheckmark: false,
+      padding: const EdgeInsets.symmetric(horizontal: 4),
     );
   }
 
@@ -354,6 +443,29 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildProductCard(Map<String, dynamic> product) {
+    final series = (product['series'] as String?)?.trim() ?? '';
+    final category = product['category'] as String? ?? '';
+    final collectionLabel = (series.isNotEmpty
+            ? '$series Koleksiyonu'
+            : (category.isNotEmpty ? '$category Koleksiyonu' : 'Koleksiyon'))
+        .toUpperCase();
+    final reviewCount = product['reviewCount'] is num
+        ? (product['reviewCount'] as num).toInt()
+        : 0;
+    final reviewAverage = product['reviewAverage'] is num
+        ? (product['reviewAverage'] as num).toDouble()
+        : 0.0;
+    final reviewLabel = reviewCount == 0
+        ? 'Henüz yorum yok'
+        : '${reviewAverage.toStringAsFixed(1)} · $reviewCount yorum';
+    final discount = product['discount'] is num
+        ? (product['discount'] as num).toInt()
+        : int.tryParse('${product['discount'] ?? 0}') ?? 0;
+    final originalPrice = product['price'] is num
+        ? product['price'] as num
+        : num.tryParse('${product['price']}') ?? 0;
+    final salePrice = _cardPrice(product);
+
     return InkWell(
       onTap: () {
         Navigator.push(
@@ -370,7 +482,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             AspectRatio(
               aspectRatio: 1,
@@ -393,6 +505,30 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                     ),
                     Positioned(
+                      left: 8,
+                      top: 8,
+                      child: discount > 0
+                          ? Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _gold,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                '%$discount İndirim',
+                                style: const TextStyle(
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                    Positioned(
                       right: 4,
                       top: 4,
                       child: ListenableBuilder(
@@ -403,16 +539,18 @@ class _HomeScreenState extends State<HomeScreen> {
                           return IconButton(
                             onPressed: () async {
                               try {
-                                await FavoriteService.instance
-                                    .toggleProduct(product);
+                                await FavoriteService.instance.toggleProduct(
+                                  product,
+                                );
                               } catch (e) {
                                 if (!context.mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
-                                      e
-                                          .toString()
-                                          .replaceFirst('Exception: ', ''),
+                                      e.toString().replaceFirst(
+                                        'Exception: ',
+                                        '',
+                                      ),
                                     ),
                                   ),
                                 );
@@ -432,38 +570,78 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product['name'] as String,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      collectionLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.3,
+                        color: Color.fromARGB(255, 110, 109, 109),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    product['category'] as String,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: Color.fromARGB(255, 90, 89, 89),
+                    const SizedBox(height: 5),
+                    Text(
+                      product['name'] as String,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '₺${product['price']}',
-                    style: const TextStyle(
-                      color: Color.fromARGB(255, 157, 114, 49),
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                    const SizedBox(height: 5),
+                    Row(
+                      children: [
+                        const Icon(Icons.star, size: 13, color: _gold),
+                        const SizedBox(width: 3),
+                        Flexible(
+                          child: Text(
+                            reviewLabel,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 5),
+                    Text(
+                      formatTryPrice(salePrice),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color.fromARGB(255, 157, 114, 49),
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (discount > 0) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        formatTryPrice(originalPrice),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 11,
+                          decoration: TextDecoration.lineThrough,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
           ],

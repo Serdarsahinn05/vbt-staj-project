@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/core/price_format.dart';
 import 'package:mobile/screens/main_shell.dart';
+import 'package:mobile/services/auth_service.dart';
 import 'package:mobile/services/cart_service.dart';
 import 'package:mobile/services/favorites_service.dart';
 import 'package:mobile/services/product_services.dart';
+import 'package:mobile/services/review_service.dart';
+import 'package:mobile/widgets/zemrek_app_bar.dart';
 
 class DetailScreen extends StatefulWidget {
   final int productId;
@@ -23,10 +27,39 @@ class _DetailScreenState extends State<DetailScreen> {
   bool _loading = true;
   String? _error;
 
+  double _average = 0;
+  int _reviewCount = 0;
+  List<Map<String, dynamic>> _reviews = [];
+  bool _reviewsLoading = true;
+
+  int _userRating = 0;
+  final _reviewController = TextEditingController();
+  final _scrollController = ScrollController();
+  final _reviewsSectionKey = GlobalKey();
+  bool _submittingReview = false;
+
   @override
   void initState() {
     super.initState();
     _load();
+  }
+
+  @override
+  void dispose() {
+    _reviewController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToReviews() {
+    final context = _reviewsSectionKey.currentContext;
+    if (context == null) return;
+    Scrollable.ensureVisible(
+      context,
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeInOut,
+      alignment: 0.05,
+    );
   }
 
   Future<void> _load() async {
@@ -38,6 +71,7 @@ class _DetailScreenState extends State<DetailScreen> {
         _product = product;
         _loading = false;
       });
+      await _loadReviews();
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -47,17 +81,65 @@ class _DetailScreenState extends State<DetailScreen> {
     }
   }
 
-  String _formatPrice(num price) {
-    final text = price.toStringAsFixed(0);
-    final buffer = StringBuffer();
-    for (var i = 0; i < text.length; i++) {
-      final reverseIndex = text.length - i;
-      buffer.write(text[i]);
-      if (reverseIndex > 1 && reverseIndex % 3 == 1) {
-        buffer.write('.');
-      }
+  Future<void> _loadReviews() async {
+    setState(() => _reviewsLoading = true);
+    try {
+      final summary =
+          await ReviewService.instance.getReviews(widget.productId);
+      if (!mounted) return;
+      setState(() {
+        _reviews = summary.reviews;
+        _average = summary.average;
+        _reviewCount = summary.count;
+        _reviewsLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _reviewsLoading = false);
     }
-    return '₺$buffer,00';
+  }
+
+  Future<void> _submitReview() async {
+    if (_userRating < 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Lütfen yıldız puanı seçin')),
+      );
+      return;
+    }
+
+    final loggedIn = await AuthService.instance.isLoggedIn;
+    if (!loggedIn) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Yorum yapmak için giriş yapmalısınız')),
+      );
+      return;
+    }
+
+    setState(() => _submittingReview = true);
+    try {
+      await ReviewService.instance.addReview(
+        productId: widget.productId,
+        rating: _userRating,
+        comment: _reviewController.text,
+      );
+      _reviewController.clear();
+      _userRating = 0;
+      await _loadReviews();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Değerlendirmeniz eklendi')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceFirst('Exception: ', '')),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _submittingReview = false);
+    }
   }
 
   num _parsePrice(dynamic value) {
@@ -76,11 +158,35 @@ class _DetailScreenState extends State<DetailScreen> {
   Map<String, dynamic> _productForActions(Map<String, dynamic> product) {
     final variant = _activeVariant(product);
     final images = List<String>.from(variant['images'] as List? ?? const []);
+
+    num variantPrice = _parsePrice(variant['price']);
+    num productPrice = _parsePrice(product['price']);
+    final price = variantPrice > 0 ? variantPrice : productPrice;
+
+    int parseStock(dynamic value) {
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      return int.tryParse('$value') ?? 0;
+    }
+
+    final variantStock = parseStock(variant['stock']);
+    final productStock = parseStock(product['stock']);
+    final stock = variantStock > 0 ? variantStock : productStock;
+
+    final discount = variant['discount'] is num
+        ? (variant['discount'] as num).toInt()
+        : int.tryParse('${variant['discount'] ?? product['discount'] ?? 0}') ??
+            0;
+    final effectivePrice =
+        discount > 0 ? price * (1 - discount / 100) : price;
+
     return {
       ...product,
       'variantId': variant['id'] ?? product['variantId'],
-      'price': _parsePrice(variant['price'] ?? product['price']),
-      'stock': variant['stock'] ?? product['stock'],
+      'price': price,
+      'effectivePrice': effectivePrice,
+      'stock': stock,
+      'discount': discount,
       'image': images.isNotEmpty ? images.first : product['image'],
       'images': images.isNotEmpty ? images : product['images'],
       'colorName': variant['colorName'],
@@ -105,6 +211,18 @@ class _DetailScreenState extends State<DetailScreen> {
     return main.isEmpty ? <String>[] : [main];
   }
 
+  String _gendersLabel(Map<String, dynamic> product) {
+    final genders = (product['genders'] as List<dynamic>? ?? [])
+        .map((e) => e.toString())
+        .toList();
+    if (genders.contains('ERKEK') && genders.contains('KADIN')) {
+      return 'Unisex';
+    }
+    if (genders.contains('ERKEK')) return 'Erkek';
+    if (genders.contains('KADIN')) return 'Kadın';
+    return _genderLabel(product['gender'] as String?);
+  }
+
   String _genderLabel(String? gender) {
     switch (gender) {
       case 'ERKEK':
@@ -126,7 +244,7 @@ class _DetailScreenState extends State<DetailScreen> {
     }
 
     add('Seri', product['series']);
-    add('Cinsiyet', _genderLabel(product['gender'] as String?));
+    add('Cinsiyet', _gendersLabel(product));
     add('Kasa', product['caseSize']);
     add('Malzeme', product['material']);
     add('Çerçeve', product['bezel']);
@@ -141,6 +259,24 @@ class _DetailScreenState extends State<DetailScreen> {
     add('Renk', variant['colorName']);
 
     return rows;
+  }
+
+  Widget _ratingStars(double average, {double size = 18}) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(5, (i) {
+        final starIndex = i + 1;
+        final IconData icon;
+        if (average >= starIndex) {
+          icon = Icons.star;
+        } else if (average >= starIndex - 0.5) {
+          icon = Icons.star_half;
+        } else {
+          icon = Icons.star_border;
+        }
+        return Icon(icon, size: size, color: _gold);
+      }),
+    );
   }
 
   Widget _benefitRow(String text) {
@@ -187,11 +323,7 @@ class _DetailScreenState extends State<DetailScreen> {
     if (product == null) {
       return Scaffold(
         backgroundColor: Colors.white,
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
-          elevation: 0,
-        ),
+        appBar: const ZemrekAppBar(title: 'ZEMREK', brandTitle: true),
         body: Center(child: Text(_error ?? 'Ürün bulunamadı')),
       );
     }
@@ -207,7 +339,13 @@ class _DetailScreenState extends State<DetailScreen> {
         .toList();
     final variants = product['variants'] as List<dynamic>? ?? [];
     final images = _galleryImages(product);
-    final price = actionProduct['price'] as num? ?? 0;
+    final price = actionProduct['effectivePrice'] as num? ??
+        actionProduct['price'] as num? ??
+        0;
+    final originalPrice = actionProduct['price'] as num? ?? 0;
+    final discount = actionProduct['discount'] is num
+        ? (actionProduct['discount'] as num).toInt()
+        : 0;
     final stock = actionProduct['stock'] is num
         ? actionProduct['stock'] as num
         : num.tryParse('${actionProduct['stock']}') ?? 0;
@@ -217,18 +355,9 @@ class _DetailScreenState extends State<DetailScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-        title: const Text(
-          'ZEMREK',
-          style: TextStyle(
-            color: _gold,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
-        ),
+      appBar: ZemrekAppBar(
+        title: 'ZEMREK',
+        brandTitle: true,
         actions: [
           ListenableBuilder(
             listenable: CartService.instance,
@@ -250,6 +379,7 @@ class _DetailScreenState extends State<DetailScreen> {
         ],
       ),
       body: SingleChildScrollView(
+        controller: _scrollController,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -347,34 +477,49 @@ class _DetailScreenState extends State<DetailScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      ...List.generate(
-                        5,
-                        (i) => Icon(
-                          i < 4 ? Icons.star : Icons.star_half,
-                          size: 18,
-                          color: _gold,
+                  if (_reviewsLoading)
+                    Text(
+                      'Değerlendirmeler yükleniyor...',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade600,
+                      ),
+                    )
+                  else
+                    InkWell(
+                      onTap: _reviewCount > 0 ? _scrollToReviews : null,
+                      borderRadius: BorderRadius.circular(6),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          children: [
+                            _ratingStars(_average),
+                            const SizedBox(width: 8),
+                            Text(
+                              _reviewCount == 0
+                                  ? 'Henüz puan yok'
+                                  : _average.toStringAsFixed(1),
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey.shade800,
+                              ),
+                            ),
+                            if (_reviewCount > 0)
+                              Text(
+                                '  ($_reviewCount değerlendirme)',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.w600,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: Colors.black87,
+                                ),
+                              ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '4.6',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade800,
-                        ),
-                      ),
-                      Text(
-                        '  (24 yorum)',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
                   if (styleTags.isNotEmpty) ...[
                     const SizedBox(height: 12),
                     Wrap(
@@ -404,14 +549,56 @@ class _DetailScreenState extends State<DetailScreen> {
                     ),
                   ],
                   const SizedBox(height: 10),
-                  Text(
-                    _formatPrice(price),
-                    style: const TextStyle(
-                      color: _goldDark,
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
+                  if (discount > 0) ...[
+                    Text(
+                      formatTryPrice(originalPrice),
+                      style: TextStyle(
+                        color: Colors.grey.shade500,
+                        fontSize: 16,
+                        decoration: TextDecoration.lineThrough,
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Text(
+                          formatTryPrice(price),
+                          style: const TextStyle(
+                            color: _goldDark,
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _gold,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            '%$discount İndirim',
+                            style: const TextStyle(
+                              color: Colors.black87,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ] else
+                    Text(
+                      formatTryPrice(price),
+                      style: const TextStyle(
+                        color: _goldDark,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   const SizedBox(height: 16),
                   Text(
                     description.isEmpty
@@ -680,6 +867,160 @@ class _DetailScreenState extends State<DetailScreen> {
                   _benefitRow('Ücretsiz sigortalı kargo'),
                   _benefitRow('5 yıl uluslararası garanti'),
                   _benefitRow('30 gün içinde iade ve değişim'),
+                  const SizedBox(height: 12),
+                  Divider(color: Colors.grey.shade300),
+                  const SizedBox(height: 16),
+                  KeyedSubtree(
+                    key: _reviewsSectionKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                  _sectionTitle('Değerlendirmeler'),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Puan verin, isterseniz yorum da yazın',
+                    style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: List.generate(5, (index) {
+                      final star = index + 1;
+                      return IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 36,
+                          minHeight: 36,
+                        ),
+                        onPressed: () => setState(() => _userRating = star),
+                        icon: Icon(
+                          star <= _userRating
+                              ? Icons.star
+                              : Icons.star_border,
+                          color: _gold,
+                          size: 28,
+                        ),
+                      );
+                    }),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _reviewController,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      hintText: 'Yorumunuz (isteğe bağlı)',
+                      filled: true,
+                      fillColor: Colors.grey.shade50,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide:
+                            const BorderSide(color: _gold, width: 1.4),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: _submittingReview ? null : _submitReview,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _goldDark,
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor: Colors.grey.shade400,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: _submittingReview
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text(
+                              'Değerlendirme Gönder',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  if (_reviewsLoading)
+                    const Center(child: CircularProgressIndicator())
+                  else if (_reviews.isEmpty)
+                    Text(
+                      'Henüz yorum yok.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade600,
+                      ),
+                    )
+                  else
+                    ..._reviews.map((review) {
+                      final rating = review['rating'] is num
+                          ? (review['rating'] as num).toInt()
+                          : 0;
+                      final comment =
+                          (review['comment'] as String?)?.trim() ?? '';
+                      final user = review['user'];
+                      // API: user.name (seed / kayıtlı kullanıcı adı)
+                      final userName = user is Map
+                          ? ((user['name'] as String?)?.trim().isNotEmpty == true
+                              ? user['name'] as String
+                              : 'Kullanıcı')
+                          : 'Kullanıcı';
+
+                      return Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    userName,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                                _ratingStars(rating.toDouble(), size: 14),
+                              ],
+                            ),
+                            if (comment.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Text(
+                                comment,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  height: 1.45,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      );
+                    }),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),

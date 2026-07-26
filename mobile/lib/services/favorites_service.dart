@@ -48,6 +48,13 @@ class FavoriteService extends ChangeNotifier {
           ? (category['name'] as String? ?? '')
           : '';
 
+      final price = _parsePrice(variant['price']);
+      final discount = variant['discount'] is num
+          ? (variant['discount'] as num).toInt()
+          : int.tryParse('${variant['discount'] ?? 0}') ?? 0;
+      final effectivePrice =
+          discount > 0 ? price * (1 - discount / 100) : price;
+
       _variantIds.add(variantId);
       _itemsByVariantId[variantId] = {
         'variantId': variantId,
@@ -55,7 +62,9 @@ class FavoriteService extends ChangeNotifier {
         'name': product['name'],
         'category': categoryName,
         'image': images.isNotEmpty ? images.first : '',
-        'price': _parsePrice(variant['price']),
+        'price': price,
+        'discount': discount,
+        'effectivePrice': effectivePrice,
         'gender': product['gender'],
       };
     }
@@ -91,13 +100,24 @@ class FavoriteService extends ChangeNotifier {
       }
       _variantIds.add(variantId);
       if (productHint != null) {
+        final price = productHint['price'] is num
+            ? productHint['price'] as num
+            : _parsePrice(productHint['price']);
+        final discount = productHint['discount'] is num
+            ? (productHint['discount'] as num).toInt()
+            : int.tryParse('${productHint['discount'] ?? 0}') ?? 0;
+        final effective = productHint['effectivePrice'] is num
+            ? productHint['effectivePrice'] as num
+            : (discount > 0 ? price * (1 - discount / 100) : price);
         _itemsByVariantId[variantId] = {
           'variantId': variantId,
           'id': productHint['id'],
           'name': productHint['name'],
           'category': productHint['category'],
           'image': productHint['image'],
-          'price': productHint['price'],
+          'price': price,
+          'discount': discount,
+          'effectivePrice': effective,
           'gender': productHint['gender'],
         };
       }

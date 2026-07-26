@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/core/price_format.dart';
 import 'package:mobile/screens/product_detail.dart';
 import 'package:mobile/services/favorites_service.dart';
+import 'package:mobile/widgets/zemrek_app_bar.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -43,15 +45,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
+      appBar: ZemrekAppBar(
+        title: 'Favorilerim',
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-        title: const Text(
-          'Favorilerim',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
         actions: [
           IconButton(
             onPressed: _load,
@@ -201,13 +197,85 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                           ),
                                         ),
                                         const SizedBox(height: 6),
-                                        Text(
-                                          '₺${product['price']}',
-                                          style: const TextStyle(
-                                            color: _goldDark,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
-                                          ),
+                                        Builder(
+                                          builder: (context) {
+                                            final price = product['price'] is num
+                                                ? product['price'] as num
+                                                : num.tryParse(
+                                                      '${product['price']}',
+                                                    ) ??
+                                                    0;
+                                            final discount =
+                                                product['discount'] is num
+                                                    ? (product['discount']
+                                                            as num)
+                                                        .toInt()
+                                                    : int.tryParse(
+                                                          '${product['discount'] ?? 0}',
+                                                        ) ??
+                                                        0;
+                                            final sale =
+                                                product['effectivePrice']
+                                                        is num
+                                                    ? product['effectivePrice']
+                                                        as num
+                                                    : (discount > 0
+                                                        ? price *
+                                                            (1 - discount / 100)
+                                                        : price);
+                                            return Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                if (discount > 0) ...[
+                                                  Text(
+                                                    formatTryPrice(price),
+                                                    style: TextStyle(
+                                                      color:
+                                                          Colors.grey.shade500,
+                                                      fontSize: 12,
+                                                      decoration:
+                                                          TextDecoration
+                                                              .lineThrough,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 2),
+                                                  Row(
+                                                    children: [
+                                                      Text(
+                                                        formatTryPrice(sale),
+                                                        style: const TextStyle(
+                                                          color: _goldDark,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          fontSize: 15,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(width: 8),
+                                                      Text(
+                                                        '%$discount İndirim',
+                                                        style: const TextStyle(
+                                                          color: _goldDark,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          fontSize: 12,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ] else
+                                                  Text(
+                                                    formatTryPrice(sale),
+                                                    style: const TextStyle(
+                                                      color: _goldDark,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 15,
+                                                    ),
+                                                  ),
+                                              ],
+                                            );
+                                          },
                                         ),
                                       ],
                                     ),

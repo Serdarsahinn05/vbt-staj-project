@@ -63,23 +63,63 @@ class ProductServices {
       return 0;
     }
 
-    final price = parsePrice(first?['price'] ?? p['price']);
-    final stock = first?['stock'] ?? p['stock'] ?? 0;
+    int parseStock(dynamic value) {
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
+    // Model fiyatı ürün seviyesinde; varyant 0 ise ürün fiyatını kullan
+    final variantPrice = parsePrice(first?['price']);
+    final productPrice = parsePrice(p['price']);
+    final price = variantPrice > 0 ? variantPrice : productPrice;
+
+    final variantStock = parseStock(first?['stock']);
+    final productStock = parseStock(p['stock']);
+    final totalVariantStock = variants.fold<int>(
+      0,
+      (sum, v) => sum + parseStock(v['stock']),
+    );
+    final stock = variantStock > 0
+        ? variantStock
+        : (productStock > 0 ? productStock : totalVariantStock);
+
+    final discount = first?['discount'] is num
+        ? (first!['discount'] as num).toInt()
+        : int.tryParse('${first?['discount'] ?? 0}') ?? 0;
+    final effectivePrice =
+        discount > 0 ? price * (1 - discount / 100) : price;
+
     final category = p['category'];
     final categoryName = category is Map
         ? (category['name'] as String? ?? '')
         : (category as String? ?? '');
 
+    final genders = (p['genders'] as List<dynamic>? ?? [])
+        .map((e) => e.toString())
+        .toList();
+    // Eski API alanı varsa yedekle
+    if (genders.isEmpty && p['gender'] != null) {
+      genders.add(p['gender'].toString());
+    }
+
     return {
       'id': p['id'],
+      'slug': p['slug'],
       'variantId': first?['id'],
       'name': p['name'],
       'description': p['description'],
       'category': categoryName,
       'styleTags': p['styleTags'] ?? [],
-      'gender': p['gender'],
+      'genders': genders,
+      'gender': genders.length >= 2
+          ? 'UNISEX'
+          : (genders.isNotEmpty ? genders.first : null),
       'price': price,
-      'stock': stock is num ? stock : int.tryParse('$stock') ?? 0,
+      'effectivePrice': effectivePrice,
+      'stock': stock,
+      'discount': discount,
       'image': images.isNotEmpty ? images.first : '',
       'images': images,
       'variants': variants,
