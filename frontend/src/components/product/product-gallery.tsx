@@ -41,9 +41,12 @@ export function ProductGallery({
             <span
               key={src}
               aria-hidden={!active}
+              /* Görünmeyen katmanlar fareye kapalı: hepsi üst üste durduğu için
+                 "resmi yeni sekmede aç" hep en üstteki katmanı veriyor, seçili
+                 olanı değil. */
               className={cn(
                 "absolute inset-0 block transition-opacity duration-300 ease-standard",
-                active ? "opacity-100" : "opacity-0",
+                active ? "opacity-100" : "pointer-events-none opacity-0",
               )}
             >
               <ProductImage
@@ -60,7 +63,11 @@ export function ProductGallery({
 
         {warm &&
           warmSources.map((src) => (
-            <span key={src} aria-hidden className="absolute inset-0 opacity-0">
+            <span
+              key={src}
+              aria-hidden
+              className="pointer-events-none absolute inset-0 opacity-0"
+            >
               <ProductImage
                 src={src}
                 alt=""
