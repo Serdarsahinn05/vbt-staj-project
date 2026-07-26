@@ -16,7 +16,7 @@ arayüzü ve Flutter mobil uygulaması paylaşır.
 ![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
-[Özellikler](#-özellikler) · [Vitrin](#-vitrin) · [Mimari](#-mimari) · [Bileşen Rehberleri](#-bileşen-rehberleri) · [Hızlı Başlangıç](#-hızlı-başlangıç) · [API](#-api-ve-yetkilendirme) · [Demo](#-demo) · [Testler](#-testler) · [Ekip](#-ekip)
+[Özellikler](#-özellikler) · [Vitrin](#%EF%B8%8F-vitrin) · [Mimari](#%EF%B8%8F-mimari) · [Bileşen Rehberleri](#-bileşen-rehberleri) · [Hızlı Başlangıç](#-hızlı-başlangıç) · [API](#-api-ve-yetkilendirme) · [Demo](#-demo) · [Testler](#-testler) · [Ekip](#-ekip)
 
 </div>
 
@@ -215,9 +215,10 @@ Tam Swagger dokümantasyonu backend ayaktayken
 
 Şemanın tamamı: [backend/prisma/schema.prisma](./backend/prisma/schema.prisma)
 
-## 🎬 Demo
 
-📹 Tanıtım videosu: _(link buraya eklenecek)_
+## 🎬 Demo
+📹 Tanıtım videosu: [YouTube](https://youtu.be/bQub0nZy8tE)
+🔗 Canlı site: [Live Demo](https://zemrek.vercel.app/)
 
 ## 🧪 Testler
 
